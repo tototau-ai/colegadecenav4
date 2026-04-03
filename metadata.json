@@ -1,0 +1,5 @@
+{
+  "name": "Colega de Cena V4",
+  "description": "Seu parceiro de ensaio inteligente. Ouça seus roteiros com vozes reais e ensaie suas falas com o Modo Ator. Agora em inglês e português.",
+  "requestFramePermissions": ["microphone"]
+}
