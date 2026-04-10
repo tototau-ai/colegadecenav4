@@ -271,7 +271,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       setIsWaitingForActor(false);
       return;
     }
-    if (idx > 275) {
+    if (idx > 0 && idx % 275 === 0) {
       setIsPlaying(false);
       setShowPaywall(true);
       return;
@@ -462,7 +462,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
         </div>
         <div className="flex items-center gap-4">
           <button onClick={switchLang} className="flex items-center gap-1 text-[0.7rem] text-[#777] hover:text-[#e8d5a3] transition-colors"><Languages size={14} />{lang === 'pt' ? 'EN' : 'PT'}</button>
-          <span className="text-[0.72rem] text-[#777] hidden sm:inline">{lines.length > 0 ? `${Math.ceil((275 - currentLineIdx) / 55)} ${t['app.freePages']}` : t['common.freePagesLeft']}</span>
+          <span className="text-[0.72rem] text-[#777] hidden sm:inline">{lines.length > 0 ? `${lang === 'pt' ? 'página ' : 'page '}${Math.floor(currentLineIdx / 55) + 1} ${lang === 'pt' ? 'de' : 'of'} ${Math.ceil(lines.length / 55)}` : ''}</span>
           <button onClick={() => setShowPaywall(true)} className="bg-[#e8d5a3] text-[#0a0a0a] px-4 py-1.5 rounded-md text-[0.78rem] font-medium hover:bg-[#c4a87a] transition-colors">{t['app.unlock']}</button>
         </div>
       </header>
@@ -620,10 +620,288 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
         </main>
       </div>
 
-      {/* Preview Modal (i18n omitted for brevity – same structure with t[...] keys) */}
-      {/* Voice Modal (i18n omitted) */}
-      {/* Paywall Modal (i18n omitted) */}
-      {/* Note: For full functionality, replace hardcoded strings in modals with t keys as shown in the locale files */}
+      {/* ── PREVIEW MODAL ── */}
+      <AnimatePresence>
+        {showPreview && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.96, opacity: 0 }}
+              className="bg-[#111] border border-[#2a2a2a] rounded-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] shrink-0">
+                <div>
+                  <h2 className="font-serif text-lg text-[#f0ece4]">{t['preview.title']}</h2>
+                  <p className="text-[0.7rem] text-[#777] mt-0.5">{t['preview.subtitle']}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={undoPreview} disabled={previewHistory.length === 0} className="text-[0.72rem] text-[#777] border border-[#2a2a2a] px-3 py-1.5 rounded-lg hover:text-[#f0ece4] disabled:opacity-30 flex items-center gap-1"><Undo2 className="w-3 h-3" /> {t['preview.undo']}</button>
+                  <button onClick={() => { setShowPreview(false); setIsLoading(false); }} className="text-[0.72rem] text-[#777] border border-[#2a2a2a] px-3 py-1.5 rounded-lg hover:text-[#f0ece4]">{t['preview.cancel']}</button>
+                  <button onClick={confirmPreview} className="bg-[#e8d5a3] text-[#0a0a0a] px-4 py-1.5 rounded-lg text-[0.78rem] font-medium hover:bg-[#c4a87a]">{t['preview.confirm']}</button>
+                </div>
+              </div>
+              <div className="flex flex-1 overflow-hidden">
+                {/* Line list */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-0.5 custom-scrollbar">
+                  {previewLines.map((line, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setPreviewSel(i)}
+                      className={cn(
+                        "flex items-start gap-3 px-3 py-2 rounded-lg cursor-pointer group transition-all",
+                        previewSel === i ? "bg-[#e8d5a3]/10 border border-[#e8d5a3]/30" : "hover:bg-[#1e1e1e] border border-transparent"
+                      )}
+                    >
+                      <span className="text-[0.6rem] text-[#555] w-6 shrink-0 pt-0.5 text-right">{i + 1}</span>
+                      <span className={cn(
+                        "text-[0.72rem] px-1.5 py-0.5 rounded shrink-0",
+                        line.tipo === 'scene' && "bg-[#2a2a2a] text-[#777]",
+                        line.tipo === 'action' && "bg-[#1e2a1e] text-[#7ec8a8]",
+                        line.tipo === 'character' && "bg-[#2a1f3d] text-[#c4a8ff]",
+                        line.tipo === 'dialogue' && "bg-[#1f2535] text-[#90b8e8]",
+                        line.tipo === 'direction' && "bg-[#2d2a1f] text-[#e8d090]",
+                        line.tipo === 'transition' && "bg-[#2a2a2a] text-[#999]"
+                      )}>
+                        {line.tipo}
+                      </span>
+                      <span className={cn(
+                        "text-[0.82rem] leading-snug flex-1 min-w-0 truncate",
+                        line.tipo === 'character' && "font-bold uppercase",
+                        line.tipo === 'scene' && "uppercase text-[#777]",
+                        line.tipo === 'direction' && "italic text-[#777]"
+                      )}>
+                        {line.texto}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {/* Edit panel */}
+                <div className="w-72 border-l border-[#2a2a2a] p-4 shrink-0 overflow-y-auto">
+                  {previewSel < 0 ? (
+                    <p className="text-[0.72rem] text-[#555] text-center pt-8">{t['preview.clickToEdit']}</p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-[0.65rem] uppercase tracking-widest text-[#777] mb-2">{t['preview.editLine']} #{previewSel + 1}</div>
+                      <div>
+                        <label className="text-[0.65rem] text-[#777] uppercase tracking-wider block mb-1">{t['preview.type']}</label>
+                        <select
+                          value={previewLines[previewSel]?.tipo}
+                          onChange={e => {
+                            const updated = [...previewLines];
+                            updated[previewSel] = { ...updated[previewSel], tipo: e.target.value as any };
+                            pushPreviewHistory(updated);
+                          }}
+                          className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg px-3 py-2 text-[0.78rem] focus:outline-none focus:border-[#e8d5a3]"
+                        >
+                          {['scene','action','character','dialogue','direction','transition'].map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.65rem] text-[#777] uppercase tracking-wider block mb-1">{t['preview.text']}</label>
+                        <textarea
+                          rows={4}
+                          value={previewLines[previewSel]?.texto}
+                          onChange={e => {
+                            const updated = [...previewLines];
+                            updated[previewSel] = { ...updated[previewSel], texto: e.target.value };
+                            setPreviewLines(updated);
+                          }}
+                          className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg px-3 py-2 text-[0.78rem] focus:outline-none focus:border-[#e8d5a3] resize-none"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => { if (previewSel <= 0) return; const u=[...previewLines]; [u[previewSel-1],u[previewSel]]=[u[previewSel],u[previewSel-1]]; pushPreviewHistory(u); setPreviewSel(previewSel-1); }} className="text-[0.7rem] border border-[#2a2a2a] rounded-lg py-1.5 text-[#777] hover:text-[#f0ece4] hover:border-[#e8d5a3]">↑ {t['preview.up']}</button>
+                        <button onClick={() => { if (previewSel >= previewLines.length-1) return; const u=[...previewLines]; [u[previewSel],u[previewSel+1]]=[u[previewSel+1],u[previewSel]]; pushPreviewHistory(u); setPreviewSel(previewSel+1); }} className="text-[0.7rem] border border-[#2a2a2a] rounded-lg py-1.5 text-[#777] hover:text-[#f0ece4] hover:border-[#e8d5a3]">↓ {t['preview.down']}</button>
+                        <button onClick={() => { const u=[...previewLines]; u.splice(previewSel,0,{texto:'',tipo:'action'}); pushPreviewHistory(u); }} className="text-[0.7rem] border border-[#2a2a2a] rounded-lg py-1.5 text-[#777] hover:text-[#5cb87a] hover:border-[#5cb87a] col-span-2">+ {t['preview.insertBefore']}</button>
+                        <button onClick={() => { const u=[...previewLines]; u.splice(previewSel+1,0,{texto:'',tipo:'action'}); pushPreviewHistory(u); setPreviewSel(previewSel+1); }} className="text-[0.7rem] border border-[#2a2a2a] rounded-lg py-1.5 text-[#777] hover:text-[#5cb87a] hover:border-[#5cb87a] col-span-2">+ {t['preview.insertAfter']}</button>
+                        <button onClick={() => { const u=[...previewLines]; u.splice(previewSel,1); pushPreviewHistory(u); setPreviewSel(Math.max(0,previewSel-1)); }} className="text-[0.7rem] border border-[#e05252]/30 rounded-lg py-1.5 text-[#e05252] hover:bg-[#e05252]/10 col-span-2 flex items-center justify-center gap-1"><Trash2 className="w-3 h-3" /> {t['preview.delete']}</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── VOICE MODAL ── */}
+      <AnimatePresence>
+        {showVoiceModal !== null && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4"
+            onClick={() => setShowVoiceModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.96, opacity: 0 }}
+              className="bg-[#111] border border-[#2a2a2a] rounded-xl w-full max-w-md overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
+                <div>
+                  <h2 className="font-serif text-lg text-[#f0ece4]">
+                    {showVoiceModal === '__narrator__' ? t['sidebar.narrator'] : `${t['voice.title']} ${showVoiceModal}`}
+                  </h2>
+                  <p className="text-[0.68rem] text-[#777] mt-0.5">{t['voice.subtitle']}</p>
+                </div>
+                <button onClick={() => setShowVoiceModal(null)} className="text-[#777] hover:text-[#f0ece4]"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" />
+                  <input
+                    type="text"
+                    placeholder={t['voice.search']}
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg pl-9 pr-4 py-2 text-[0.78rem] focus:outline-none focus:border-[#e8d5a3]"
+                  />
+                </div>
+                {/* System / Profile voices */}
+                <div>
+                  <div className="text-[0.6rem] uppercase tracking-widest text-[#777] mb-2">{t['voice.system']}</div>
+                  <div className="space-y-1">
+                    {CASTING_PROFILES.filter(p => !searchTerm || p.label.toLowerCase().includes(searchTerm.toLowerCase())).map(profile => {
+                      const isSelected = showVoiceModal === '__narrator__'
+                        ? narratorProfile === profile.id
+                        : characters[showVoiceModal!]?.perfil === profile.id;
+                      return (
+                        <button
+                          key={profile.id}
+                          onClick={() => {
+                            if (showVoiceModal === '__narrator__') {
+                              setNarratorProfile(profile.id);
+                              setNarratorVoiceId(null);
+                            } else {
+                              setCharacters(prev => ({ ...prev, [showVoiceModal!]: { ...prev[showVoiceModal!], perfil: profile.id, elVozId: '' } }));
+                            }
+                            previewVoice(null, profile.id);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all",
+                            isSelected ? "bg-[#e8d5a3]/10 border border-[#e8d5a3]/40" : "hover:bg-[#1e1e1e] border border-transparent"
+                          )}
+                        >
+                          <span className="text-xl">{profile.icon}</span>
+                          <span className="text-[0.82rem]">{profile.label}</span>
+                          {isSelected && <Check className="w-4 h-4 text-[#e8d5a3] ml-auto" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* ElevenLabs voices */}
+                {elVoices.length > 0 && (
+                  <div>
+                    <div className="text-[0.6rem] uppercase tracking-widest text-[#777] mb-2">ElevenLabs</div>
+                    <div className="space-y-1">
+                      {elVoices
+                        .filter((v: any) => !searchTerm || v.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map((v: any) => {
+                          const currentVoiceId = showVoiceModal === '__narrator__' ? narratorVoiceId : characters[showVoiceModal!]?.elVozId;
+                          const isSelected = currentVoiceId === v.voice_id;
+                          return (
+                            <button
+                              key={v.voice_id}
+                              onClick={() => {
+                                if (showVoiceModal === '__narrator__') {
+                                  setNarratorVoiceId(v.voice_id);
+                                } else {
+                                  setCharacters(prev => ({ ...prev, [showVoiceModal!]: { ...prev[showVoiceModal!], elVozId: v.voice_id } }));
+                                }
+                                previewVoice(v.voice_id, null);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all",
+                                isSelected ? "bg-[#e8d5a3]/10 border border-[#e8d5a3]/40" : "hover:bg-[#1e1e1e] border border-transparent"
+                              )}
+                            >
+                              <span className="text-xl">🎙️</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[0.82rem]">{v.name}</div>
+                                {v.labels?.accent && <div className="text-[0.65rem] text-[#555]">{v.labels.accent}</div>}
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-[#e8d5a3]" />}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-[#2a2a2a]">
+                <button onClick={() => setShowVoiceModal(null)} className="w-full py-2 border border-[#2a2a2a] rounded-lg text-[0.78rem] text-[#777] hover:text-[#f0ece4] hover:border-[#e8d5a3]">{t['voice.close']}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── DONATION MODAL (substitui paywall) ── */}
+      <AnimatePresence>
+        {showPaywall && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/85 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-[#2a2a2a] rounded-2xl w-full max-w-sm overflow-hidden text-center"
+            >
+              <div className="px-8 pt-8 pb-6">
+                <div className="text-4xl mb-4">🎬</div>
+                <h2 className="font-serif text-2xl text-[#f0ece4] mb-2">
+                  {lang === 'pt' ? 'Gostou do Colega de Cena?' : 'Enjoying Scene Partner?'}
+                </h2>
+                <p className="text-[0.82rem] text-[#777] leading-relaxed mb-6">
+                  {lang === 'pt'
+                    ? 'Você leu 5 páginas! O app continua gratuito e ilimitado. Se quiser apoiar o projeto, qualquer valor ajuda a mantê-lo funcionando.'
+                    : 'You\'ve read 5 pages! The app stays free and unlimited. If you\'d like to support the project, any amount helps keep it running.'
+                  }
+                </p>
+                <div className="space-y-2 mb-6">
+                  {[
+                    { label: lang === 'pt' ? '☕ Um café' : '☕ A coffee', amount: 'R$ 5', link: 'https://link.mercadopago.com.br/colegadecena' },
+                    { label: lang === 'pt' ? '🎭 Apoio roteirista' : '🎭 Screenwriter support', amount: 'R$ 15', link: 'https://link.mercadopago.com.br/colegadecena' },
+                    { label: lang === 'pt' ? '🌟 Produtor executivo' : '🌟 Executive producer', amount: 'R$ 30', link: 'https://link.mercadopago.com.br/colegadecena' },
+                  ].map(opt => (
+                    <a
+                      key={opt.amount}
+                      href={opt.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between w-full bg-[#1e1e1e] border border-[#2a2a2a] hover:border-[#e8d5a3] rounded-xl px-4 py-3 transition-all group"
+                    >
+                      <span className="text-[0.82rem] text-[#f0ece4]">{opt.label}</span>
+                      <span className="text-[0.78rem] font-medium text-[#e8d5a3] group-hover:scale-105 transition-transform">{opt.amount}</span>
+                    </a>
+                  ))}
+                </div>
+                <p className="text-[0.65rem] text-[#555] mb-5">
+                  {lang === 'pt' ? 'PIX, cartão ou boleto via Mercado Pago' : 'PIX, card or boleto via Mercado Pago'}
+                </p>
+              </div>
+              <div className="border-t border-[#2a2a2a] px-8 py-4">
+                <button
+                  onClick={() => {
+                    setShowPaywall(false);
+                    setIsPlaying(false);
+                  }}
+                  className="w-full py-2.5 text-[0.78rem] text-[#555] hover:text-[#f0ece4] transition-colors"
+                >
+                  {lang === 'pt' ? 'Continuar lendo sem apoiar →' : 'Continue reading without supporting →'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
