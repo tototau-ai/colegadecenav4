@@ -1,9 +1,8 @@
 import * as pdfjs from 'pdfjs-dist';
 import { ScriptLine, LineType } from '../types';
 
-// Usa o worker empacotado para evitar CSP
-import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+// Configura o worker usando a CDN do pdf.js (mais compatível)
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 export async function parsePDF(buf: ArrayBuffer): Promise<ScriptLine[]> {
   try {
