@@ -1,17 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-
-// Stripe Buy Button Web Component type declaration
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'stripe-buy-button': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
-        'buy-button-id'?: string;
-        'publishable-key'?: string;
-      }, HTMLElement>;
-    }
-  }
-}
 import { 
   Play, Pause, SkipBack, SkipForward, RotateCcw, 
   Upload, FileText, Clipboard, Globe, Mic, 
@@ -157,14 +145,6 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     };
   }, [language]);
 
-  // Load Stripe Buy Button script once
-  useEffect(() => {
-    if (document.querySelector('script[src*="buy-button.js"]')) return;
-    const s = document.createElement('script');
-    s.src = 'https://js.stripe.com/v3/buy-button.js';
-    s.async = true;
-    document.head.appendChild(s);
-  }, []);
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -897,21 +877,25 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                 </p>
 
                 {/* Stripe */}
-                <div className="mb-2">
-                  <div className="text-[0.65rem] text-[#555] mb-1 flex items-center gap-1">
-                    💳 Stripe · {lang === 'pt' ? 'a partir de US$ 11 · cartão internacional' : 'from US$ 11 · international card'}
+                <a
+                  href="https://buy.stripe.com/00w3cu6QG5Cb07F3LkeQM00"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 w-full bg-[#635bff] hover:bg-[#4f49cc] rounded-xl px-4 py-3 transition-all mb-2"
+                >
+                  <span className="text-lg">💳</span>
+                  <div className="flex-1 text-left">
+                    <div className="text-[0.82rem] font-medium text-white">Stripe</div>
+                    <div className="text-[0.68rem] text-white/70">
+                      {lang === 'pt' ? 'A partir de US$ 11 · cartão internacional' : 'From US$ 11 · international card'}
+                    </div>
                   </div>
-                  <div className="flex justify-center">
-                    <stripe-buy-button
-                      buy-button-id="buy_btn_1TKuPVA5MPs0mSirrjfchya8"
-                      publishable-key="pk_live_EKTBAZ22BvnzyqWFpnWxKYl600zQE0mPKV"
-                    />
-                  </div>
-                </div>
+                  <span className="text-white/60 text-sm">→</span>
+                </a>
 
                 {/* Ko-fi */}
                 <a
-                  href="https://ko-fi.com/lucianomello"
+                  href="https://ko-fi.com/lucianomello11"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 w-full bg-[#ff5e5b] hover:bg-[#e04e4b] rounded-xl px-4 py-3 transition-all mb-2"
