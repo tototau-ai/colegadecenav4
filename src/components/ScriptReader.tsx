@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+
+// Stripe Buy Button Web Component type declaration
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'stripe-buy-button': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+        'buy-button-id'?: string;
+        'publishable-key'?: string;
+      }, HTMLElement>;
+    }
+  }
+}
 import { 
   Play, Pause, SkipBack, SkipForward, RotateCcw, 
   Upload, FileText, Clipboard, Globe, Mic, 
@@ -145,6 +157,14 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     };
   }, [language]);
 
+  // Load Stripe Buy Button script once
+  useEffect(() => {
+    if (document.querySelector('script[src*="buy-button.js"]')) return;
+    const s = document.createElement('script');
+    s.src = 'https://js.stripe.com/v3/buy-button.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
@@ -169,37 +189,41 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const getVoiceForCharacter = useCallback((narrador: string | null) => {
     if (!synth.current) return null;
     const voices = synth.current.getVoices();
-    const langVoices = voices.filter(v => v.lang.startsWith(language.slice(0, 2)));
-    const targetVoices = langVoices.length > 0 ? langVoices : voices;
-    
+    // Try exact lang match first, then prefix, then all voices
+    const exactLang = voices.filter(v => v.lang === language);
+    const prefixLang = voices.filter(v => v.lang.startsWith(language.slice(0, 2)));
+    const targetVoices = exactLang.length > 0 ? exactLang : prefixLang.length > 0 ? prefixLang : voices;
+
+    // Broader gender detection: includes macOS named voices (pt-BR: Luciana/Felipe; en: Samantha/Alex)
+    const MASC_NAMES = ['male','masculin','man','homem','diego','carlos','jorge','daniel','thomas','fred','reed','mark','rodrigo','lucas','victor','felipe','alex','jorge','rishi','luca','reed','arthur'];
+    const FEM_NAMES  = ['female','feminina','woman','mulher','luciana','francisca','joana','alice','anna','sara','karen','samantha','victoria','monica','paula','julia','claire','kate','marie','fiona','moira','tessa','veena','ioana','milena'];
+
+    const isMasc = (v: SpeechSynthesisVoice) => MASC_NAMES.some(w => v.name.toLowerCase().includes(w));
+    const isFem  = (v: SpeechSynthesisVoice) => FEM_NAMES.some(w  => v.name.toLowerCase().includes(w));
+
+    const mascVoices = targetVoices.filter(isMasc);
+    const femVoices  = targetVoices.filter(isFem);
+    const neutVoices = targetVoices.filter(v => !isMasc(v) && !isFem(v));
+
+    const pickFrom = (pool: SpeechSynthesisVoice[], idx: number) =>
+      pool.length > 0 ? pool[idx % pool.length] : targetVoices[idx % targetVoices.length];
+
     if (!narrador) {
       const profile = CASTING_PROFILES.find(p => p.id === narratorProfile);
-      const ehMasc = (v: SpeechSynthesisVoice) => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('masculin');
-      const ehFem = (v: SpeechSynthesisVoice) => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('feminina');
-      if (profile?.masc === true) return targetVoices.find(ehMasc) || targetVoices[0];
-      if (profile?.masc === false) return targetVoices.find(ehFem) || targetVoices[0];
+      if (profile?.masc === true)  return pickFrom(mascVoices.length ? mascVoices : neutVoices, 0);
+      if (profile?.masc === false) return pickFrom(femVoices.length  ? femVoices  : neutVoices, 0);
       return targetVoices[0];
     }
-    
+
     if (!characters[narrador]) return targetVoices[0];
     const char = characters[narrador];
     const profile = CASTING_PROFILES.find(p => p.id === char.perfil);
-    const ehMasc = (v: SpeechSynthesisVoice) => {
-      const n = v.name.toLowerCase();
-      return n.includes('male') || n.includes('masculin') || ['diego', 'carlos', 'jorge', 'daniel', 'thomas', 'fred', 'reed', 'mark', 'rodrigo', 'lucas', 'victor'].some(w => n.includes(w));
-    };
-    const ehFem = (v: SpeechSynthesisVoice) => {
-      const n = v.name.toLowerCase();
-      return n.includes('female') || n.includes('feminina') || ['luciana', 'francisca', 'joana', 'alice', 'anna', 'sara', 'karen', 'samantha', 'victoria', 'monica', 'paula', 'julia', 'claire', 'kate', 'marie'].some(w => n.includes(w));
-    };
-    const mascVoices = targetVoices.filter(ehMasc);
-    const femVoices = targetVoices.filter(ehFem);
-    const neutVoices = targetVoices.filter(v => !ehMasc(v) && !ehFem(v));
     const charIdx = Object.keys(characters).indexOf(narrador);
+
     if (!profile) return targetVoices[charIdx % targetVoices.length];
-    if (profile.masc === true) return (mascVoices.length ? mascVoices : neutVoices.length ? neutVoices : targetVoices)[charIdx % (mascVoices.length || neutVoices.length || targetVoices.length)];
-    if (profile.masc === false) return (femVoices.length ? femVoices : neutVoices.length ? neutVoices : targetVoices)[charIdx % (femVoices.length || neutVoices.length || targetVoices.length)];
-    return (neutVoices.length ? neutVoices : targetVoices)[charIdx % (neutVoices.length || targetVoices.length)];
+    if (profile.masc === true)  return pickFrom(mascVoices.length ? mascVoices : neutVoices, charIdx);
+    if (profile.masc === false) return pickFrom(femVoices.length  ? femVoices  : neutVoices, charIdx);
+    return pickFrom(neutVoices, charIdx);
   }, [characters, language, narratorProfile]);
 
   const speakWithBrowser = (texto: string, narrador: string | null, onEnd: () => void) => {
@@ -297,7 +321,13 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       setIsWaitingForActor(true);
       return;
     }
-    speakText(line.texto, line.narrador || null, () => {
+    // Remove parentheticals like (V.O.), (O.S.), (CONT'D) from spoken text
+    const textoLimpo = line.texto.replace(/\(.*?\)/g, '').trim();
+    if (!textoLimpo) {
+      timerRef.current = setTimeout(() => { if (isPlayingRef.current) playLine(idx + 1); }, 50);
+      return;
+    }
+    speakText(textoLimpo, line.narrador || null, () => {
       if (isPlayingRef.current) {
         lastStartedIdx.current = idx + 1;
         playLine(idx + 1);
@@ -327,12 +357,12 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
         method: 'POST',
         headers: { 'xi-api-key': elKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: "Olá, esta é a minha voz no Colega de Cena.", model_id: 'eleven_multilingual_v2' })
+        body: JSON.stringify({ text: lang === 'en' ? "Hello, this is my voice in Scene Partner." : "Olá, esta é a minha voz no Colega de Cena.", model_id: 'eleven_multilingual_v2' })
       })
       .then(r => r.blob())
       .then(blob => { const url = URL.createObjectURL(blob); new Audio(url).play(); });
     } else {
-      const utt = new SpeechSynthesisUtterance("Olá, esta é a minha voz no Colega de Cena.");
+      const utt = new SpeechSynthesisUtterance(lang === 'en' ? "Hello, this is my voice in Scene Partner." : "Olá, esta é a minha voz no Colega de Cena.");
       utt.lang = language;
       const voices = synth.current.getVoices();
       const langVoices = voices.filter(v => v.lang.startsWith(language.slice(0, 2)));
@@ -458,7 +488,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       <header className="flex justify-between items-center px-6 py-3 border-b border-[#2a2a2a] bg-[#0a0a0a] z-50">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 hover:bg-[#1e1e1e] rounded-lg text-[#e8d5a3]"><Menu size={20} /></button>
-          <div className="font-serif text-xl text-[#e8d5a3] cursor-pointer" onClick={() => onBack()}>Colega de Cena <small className="text-[0.65rem] text-[#777] font-sans ml-1">v4</small></div>
+          <div className="font-serif text-xl text-[#e8d5a3] cursor-pointer" onClick={() => onBack()}>{lang === 'pt' ? 'Colega de Cena' : 'Scene Partner'} <small className="text-[0.65rem] text-[#777] font-sans ml-1">v4</small></div>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={switchLang} className="flex items-center gap-1 text-[0.7rem] text-[#777] hover:text-[#e8d5a3] transition-colors"><Languages size={14} />{lang === 'pt' ? 'EN' : 'PT'}</button>
@@ -843,7 +873,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
         )}
       </AnimatePresence>
 
-      {/* ── DONATION MODAL (substitui paywall) ── */}
+      {/* ── DONATION MODAL ── */}
       <AnimatePresence>
         {showPaywall && (
           <motion.div
@@ -854,46 +884,75 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
               initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0 }}
               className="bg-[#111] border border-[#2a2a2a] rounded-2xl w-full max-w-sm overflow-hidden text-center"
             >
-              <div className="px-8 pt-8 pb-6">
-                <div className="text-4xl mb-4">🎬</div>
+              <div className="px-8 pt-8 pb-2">
+                <div className="text-4xl mb-3">🎬</div>
                 <h2 className="font-serif text-2xl text-[#f0ece4] mb-2">
                   {lang === 'pt' ? 'Gostou do Colega de Cena?' : 'Enjoying Scene Partner?'}
                 </h2>
-                <p className="text-[0.82rem] text-[#777] leading-relaxed mb-6">
+                <p className="text-[0.8rem] text-[#777] leading-relaxed mb-5">
                   {lang === 'pt'
-                    ? 'Você leu 5 páginas! O app continua gratuito e ilimitado. Se quiser apoiar o projeto, qualquer valor ajuda a mantê-lo funcionando.'
-                    : 'You\'ve read 5 pages! The app stays free and unlimited. If you\'d like to support the project, any amount helps keep it running.'
+                    ? 'Você leu 5 páginas. O app é e sempre será gratuito. Se quiser apoiar o projeto, qualquer valor ajuda.'
+                    : "You've read 5 pages. The app is and always will be free. If you'd like to support the project, any amount helps."
                   }
                 </p>
-                <div className="space-y-2 mb-6">
-                  {[
-                    { label: lang === 'pt' ? '☕ Um café' : '☕ A coffee', amount: 'R$ 5', link: 'https://link.mercadopago.com.br/colegadecena' },
-                    { label: lang === 'pt' ? '🎭 Apoio roteirista' : '🎭 Screenwriter support', amount: 'R$ 15', link: 'https://link.mercadopago.com.br/colegadecena' },
-                    { label: lang === 'pt' ? '🌟 Produtor executivo' : '🌟 Executive producer', amount: 'R$ 30', link: 'https://link.mercadopago.com.br/colegadecena' },
-                  ].map(opt => (
-                    <a
-                      key={opt.amount}
-                      href={opt.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between w-full bg-[#1e1e1e] border border-[#2a2a2a] hover:border-[#e8d5a3] rounded-xl px-4 py-3 transition-all group"
-                    >
-                      <span className="text-[0.82rem] text-[#f0ece4]">{opt.label}</span>
-                      <span className="text-[0.78rem] font-medium text-[#e8d5a3] group-hover:scale-105 transition-transform">{opt.amount}</span>
-                    </a>
-                  ))}
+
+                {/* Stripe */}
+                <div className="mb-2">
+                  <div className="text-[0.65rem] text-[#555] mb-1 flex items-center gap-1">
+                    💳 Stripe · {lang === 'pt' ? 'a partir de US$ 11 · cartão internacional' : 'from US$ 11 · international card'}
+                  </div>
+                  <div className="flex justify-center">
+                    <stripe-buy-button
+                      buy-button-id="buy_btn_1TKuPVA5MPs0mSirrjfchya8"
+                      publishable-key="pk_live_EKTBAZ22BvnzyqWFpnWxKYl600zQE0mPKV"
+                    />
+                  </div>
                 </div>
-                <p className="text-[0.65rem] text-[#555] mb-5">
-                  {lang === 'pt' ? 'PIX, cartão ou boleto via Mercado Pago' : 'PIX, card or boleto via Mercado Pago'}
-                </p>
+
+                {/* Ko-fi */}
+                <a
+                  href="https://ko-fi.com/lucianomello"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 w-full bg-[#ff5e5b] hover:bg-[#e04e4b] rounded-xl px-4 py-3 transition-all mb-2"
+                >
+                  <span className="text-lg">☕</span>
+                  <div className="flex-1 text-left">
+                    <div className="text-[0.82rem] font-medium text-white">Ko-fi</div>
+                    <div className="text-[0.68rem] text-white/70">
+                      {lang === 'pt' ? 'A partir de US$ 11 · cartão e PayPal' : 'From US$ 11 · card & PayPal'}
+                    </div>
+                  </div>
+                  <span className="text-white/60 text-sm">→</span>
+                </a>
+
+                {/* PIX */}
+                <div className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-xl px-4 py-3 mb-5 text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">🇧🇷</span>
+                    <span className="text-[0.82rem] font-medium text-[#f0ece4]">PIX</span>
+                    <span className="text-[0.68rem] text-[#777]">
+                      {lang === 'pt' ? '· valor livre' : '· any amount'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <code className="text-[0.72rem] text-[#e8d5a3] bg-[#0a0a0a] px-2 py-1 rounded flex-1 truncate select-all">
+                      onze11films@gmail.com
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard.writeText('onze11films@gmail.com')}
+                      className="text-[0.65rem] text-[#777] border border-[#2a2a2a] rounded px-2 py-1 hover:text-[#e8d5a3] hover:border-[#e8d5a3] shrink-0"
+                    >
+                      {lang === 'pt' ? 'copiar' : 'copy'}
+                    </button>
+                  </div>
+                </div>
               </div>
+
               <div className="border-t border-[#2a2a2a] px-8 py-4">
                 <button
-                  onClick={() => {
-                    setShowPaywall(false);
-                    setIsPlaying(false);
-                  }}
-                  className="w-full py-2.5 text-[0.78rem] text-[#555] hover:text-[#f0ece4] transition-colors"
+                  onClick={() => { setShowPaywall(false); setIsPlaying(true); }}
+                  className="w-full py-2.5 text-[0.75rem] text-[#555] hover:text-[#f0ece4] transition-colors"
                 >
                   {lang === 'pt' ? 'Continuar lendo sem apoiar →' : 'Continue reading without supporting →'}
                 </button>
@@ -902,6 +961,11 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── COPYRIGHT FOOTER ── */}
+      <div className="fixed bottom-0 right-0 px-3 py-1 text-[0.55rem] text-[#333] pointer-events-none select-none z-10">
+        © {new Date().getFullYear()} Luciano Mello · Colega de Cena / Scene Partner
+      </div>
     </div>
   );
 }
