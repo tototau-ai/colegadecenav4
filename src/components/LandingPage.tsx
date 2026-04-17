@@ -164,7 +164,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       {/* PDF Formatter Banner */}
       <section className="py-16 px-6 md:px-16 border-t border-[#222] bg-[#0d0d0d]">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-10">
-          <div className="flex-1">
+          <div className="max-w-2xl">
             <div className="text-[0.68rem] tracking-[0.15em] uppercase text-[#c4a052] mb-3">
               {lang === 'pt' ? 'Problema com PDF?' : 'PDF not formatting well?'}
             </div>
@@ -189,15 +189,6 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             >
               {lang === 'pt' ? '✦ Abrir reformatador de roteiros' : '✦ Open script reformatter'}
             </a>
-          </div>
-          <div className="w-full md:w-80 bg-[#111] border border-[#222] rounded-xl p-6 font-mono text-xs leading-loose shrink-0">
-            <div className="text-[#555] mb-1">// antes</div>
-            <div className="text-[#444] mb-4">{'H e a r t  o f  D a r k n e s s\nA L B R I G H T\nD o n\' t  " L o o k ,  N o r a"  m e ...'}</div>
-            <div className="text-[#555] mb-1">// depois</div>
-            <div className="text-[#c4a052]">CHARACTER: ALBRIGHT</div>
-            <div className="text-[#f0ece4] pl-4">Don't "Look, Nora" me.</div>
-            <div className="text-[#c4a052] mt-1">CHARACTER: CAL</div>
-            <div className="text-[#f0ece4] pl-4">Nora, please—</div>
           </div>
         </div>
       </section>
