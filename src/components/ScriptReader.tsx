@@ -519,6 +519,26 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
             )}
           </section>
 
+          {/* Formatter link */}
+          <section className="px-4 py-3 border-b border-[#2a2a2a]">
+            <a
+              href="/formatar.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 w-full py-2 px-3 rounded-lg border border-dashed border-[#2a2a2a] hover:border-[#e8d5a3]/50 text-[#555] hover:text-[#e8d5a3] transition-all group"
+            >
+              <span className="text-[0.9rem]">✦</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[0.72rem] font-medium">
+                  {lang === 'pt' ? 'PDF com problemas de formatação?' : 'PDF formatting issues?'}
+                </div>
+                <div className="text-[0.62rem] text-[#444] group-hover:text-[#777] mt-0.5">
+                  {lang === 'pt' ? 'Reformatar com IA antes de carregar →' : 'Reformat with AI before loading →'}
+                </div>
+              </div>
+            </a>
+          </section>
+
           <section className="p-4 border-b border-[#2a2a2a]">
             <div className="text-[0.6rem] tracking-widest uppercase text-[#777] mb-3">{t['sidebar.language']}</div>
             <div className="flex gap-1">
