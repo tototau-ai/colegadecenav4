@@ -3,866 +3,308 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Formatar Roteiro · Colega de Cena</title>
+<title>Reformatar Roteiro · Colega de Cena</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:        #080808;
-  --surface:   #111111;
-  --surface2:  #181818;
-  --border:    #222222;
-  --border2:   #2e2e2e;
-  --gold:      #e8d5a3;
-  --gold-dim:  #a08a5a;
-  --gold-dark: #5a4c2e;
-  --dim:       #4a4a4a;
-  --mid:       #777777;
-  --text:      #f0ece4;
-  --text2:     #b8b0a4;
-  --green:     #4a9e5c;
-  --red:       #c94040;
-  --amber:     #c49030;
-  --mono:      'JetBrains Mono', monospace;
-  --serif:     'Playfair Display', Georgia, serif;
-  --sans:      'DM Sans', sans-serif;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0c0c;--surface:#161616;--surface2:#1e1e1e;--border:#2a2a2a;--border2:#3a3a3a;
+  --gold:#e8d5a3;--gold2:#b89a60;--text:#ede8e0;--text2:#a09890;--text3:#686058;
+  --green:#4d9e62;--red:#c24a4a;--amber:#c49030;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
 }
-
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.6;
-  overflow: hidden;
-}
-
-/* ── LAYOUT ── */
-.shell {
-  display: grid;
-  grid-template-rows: 56px 1fr 36px;
-  height: 100vh;
-}
-
-/* ── HEADER ── */
-header {
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  gap: 20px;
-}
-
-.logo {
-  font-family: var(--serif);
-  font-size: 1.05rem;
-  color: var(--gold);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.logo em { font-style: italic; color: var(--gold-dim); }
-
-.header-sep { width: 1px; height: 20px; background: var(--border2); flex-shrink: 0; }
-
-.header-desc {
-  font-size: 0.72rem;
-  color: var(--mid);
-  letter-spacing: 0.06em;
-  flex: 1;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* ── MAIN PANELS ── */
-.workspace {
-  display: grid;
-  grid-template-columns: 1fr 3px 1fr;
-  overflow: hidden;
-}
-
-.divider {
-  background: var(--border);
-  cursor: col-resize;
-  position: relative;
-  transition: background 0.15s;
-}
-.divider:hover { background: var(--gold-dim); }
-.divider::after {
-  content: '⋮';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--dim);
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.panel-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  flex-shrink: 0;
-}
-
-.panel-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mid);
-}
-
-.panel-top .spacer { flex: 1; }
-
-/* ── INPUT AREA ── */
-.input-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.drop-zone {
-  margin: 12px 18px 0;
-  border: 1px dashed var(--border2);
-  border-radius: 8px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  background: var(--surface2);
-}
-.drop-zone:hover, .drop-zone.over {
-  border-color: var(--gold-dim);
-  background: #1a1700;
-}
-
-.drop-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  background: var(--gold-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-  color: var(--gold);
-  font-family: var(--mono);
-  font-weight: 500;
-}
-
-.drop-text { flex: 1; }
-.drop-title { font-size: 0.82rem; color: var(--text2); }
-.drop-title strong { color: var(--text); }
-.drop-sub { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
-
-.drop-divider {
-  text-align: center;
-  font-size: 0.65rem;
-  color: var(--dim);
-  letter-spacing: 0.1em;
-  padding: 8px 18px 4px;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-textarea {
-  flex: 1;
-  background: var(--bg);
-  color: var(--text);
-  border: none;
-  outline: none;
-  resize: none;
-  padding: 12px 18px 12px;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  line-height: 1.75;
-  letter-spacing: 0.01em;
-}
-textarea::placeholder {
-  color: var(--dim);
-  font-family: var(--sans);
-  font-style: italic;
-  font-size: 0.8rem;
-}
-
-/* ── OUTPUT AREA ── */
-.output-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 18px 24px;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  line-height: 1.8;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border2) transparent;
-}
-
-.output-body:empty::before {
-  content: attr(data-ph);
-  color: var(--dim);
-  font-family: var(--sans);
-  font-style: italic;
-  font-size: 0.82rem;
-  line-height: 1.7;
-  white-space: pre-wrap;
-}
-
-/* syntax colors */
-.ls  { color: var(--mid); font-weight: 500; letter-spacing: 0.05em; display: block; margin-top: 1.2em; }
-.lc  { color: var(--gold); font-weight: 500; display: block; margin-top: 1em; text-align: center; }
-.ld  { color: var(--text); padding-left: 3em; display: block; }
-.ldi { color: var(--mid); font-style: italic; padding-left: 3em; display: block; }
-.la  { color: var(--text2); display: block; margin-top: 0.3em; }
-.lt  { color: var(--dim); text-align: right; display: block; margin-top: 0.6em; }
-
-/* ── BUTTONS ── */
-.btn {
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  padding: 5px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border2);
-  background: none;
-  color: var(--mid);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.btn:hover { color: var(--text); border-color: var(--mid); }
-.btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.btn-primary {
-  background: var(--gold);
-  color: #080808;
-  border-color: var(--gold);
-  font-weight: 500;
-}
-.btn-primary:hover { background: #c4a87a; border-color: #c4a87a; color: #080808; }
-.btn-primary:disabled { background: var(--gold); color: #080808; }
-
-.btn-copy {
-  background: var(--green);
-  color: #fff;
-  border-color: var(--green);
-}
-.btn-copy:hover { opacity: 0.85; color: #fff; }
-
-.btn-lang {
-  font-size: 0.68rem;
-  padding: 4px 10px;
-  border-radius: 4px;
-}
-
-/* ── STATUS BAR ── */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 20px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  height: 36px;
-  font-size: 0.68rem;
-  color: var(--dim);
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--dim);
-  flex-shrink: 0;
-}
-.dot.spin { background: var(--amber); animation: blink 1s ease-in-out infinite; }
-.dot.ok   { background: var(--green); }
-.dot.err  { background: var(--red); }
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
-
-.status-right { margin-left: auto; }
-
-/* ── FORMAT TYPE SELECTOR ── */
-.fmt-type-row {
-  display: flex;
-  gap: 6px;
-  padding: 8px 18px;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.fmt-type-row::-webkit-scrollbar { display: none; }
-
-.type-chip {
-  font-family: var(--sans);
-  font-size: 0.65rem;
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border2);
-  background: none;
-  color: var(--mid);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.type-chip:hover { border-color: var(--gold-dim); color: var(--text2); }
-.type-chip.active { background: var(--gold-dark); border-color: var(--gold-dim); color: var(--gold); }
-
-/* ── PROGRESS BAR ── */
-.progress-bar {
-  height: 2px;
-  background: var(--border);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--gold);
-  transition: width 0.3s ease;
-  width: 0%;
-}
-.progress-bar.active .progress-fill {
-  animation: indeterminate 1.5s ease-in-out infinite;
-}
-@keyframes indeterminate {
-  0%   { left: -40%; width: 40%; }
-  100% { left: 100%; width: 40%; }
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 680px) {
-  .workspace { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-  .divider { display: none; }
-  .panel { border-bottom: 1px solid var(--border); }
-}
-
-input[type=file] { display: none; }
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;overflow:hidden}
+.shell{display:grid;grid-template-rows:52px 1fr 34px;height:100vh}
+header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface);gap:14px}
+.logo{font-family:var(--serif);font-size:1rem;color:var(--gold);white-space:nowrap;flex-shrink:0}
+.logo em{color:var(--gold2);font-style:italic}
+.hsep{width:1px;height:18px;background:var(--border2);flex-shrink:0}
+.htag{font-size:0.7rem;color:var(--text3);flex:1}
+.hright{display:flex;gap:8px;flex-shrink:0}
+.workspace{display:grid;grid-template-columns:1fr 2px 1fr;overflow:hidden}
+.dvd{background:var(--border)}
+.panel{display:flex;flex-direction:column;overflow:hidden}
+.ptop{display:flex;align-items:center;gap:8px;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.plbl{font-size:0.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3)}
+.sp{flex:1}
+.dropz{margin:12px 16px 0;border:1px dashed var(--border2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;flex-shrink:0;background:var(--surface2)}
+.dropz:hover,.dropz.over{border-color:var(--gold2);background:#1a1800}
+.dicon{width:34px;height:34px;border-radius:6px;background:#2a2200;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.72rem;color:var(--gold2);flex-shrink:0}
+.dinfo{flex:1}
+.dtit{font-size:.82rem;color:var(--text2)}
+.dtit strong{color:var(--text)}
+.dsub{font-size:.68rem;color:var(--text3);margin-top:2px}
+.divtxt{text-align:center;font-size:.62rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:8px 16px 4px;flex-shrink:0}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;outline:none;resize:none;padding:12px 16px;font-family:var(--mono);font-size:.76rem;line-height:1.75}
+textarea::placeholder{color:var(--text3);font-family:var(--sans);font-style:italic;font-size:.78rem}
+.oscroll{flex:1;overflow-y:auto;padding:16px 20px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.oinner{font-family:var(--mono);font-size:.76rem;line-height:1.85;white-space:pre-wrap}
+.oinner:empty::before{content:attr(data-ph);color:var(--text3);font-family:var(--sans);font-style:italic;font-size:.8rem;line-height:1.7;white-space:pre-wrap}
+.ls{color:#888898;display:block;margin-top:1.4em;letter-spacing:.03em}
+.lc{color:#e8d5a3;display:block;margin-top:1em;padding-left:5em}
+.ld{color:#ede8e0;display:block;padding-left:3em}
+.ldi{color:#7a7268;font-style:italic;display:block;padding-left:3em}
+.la{color:#c0b8ae;display:block;margin-top:.2em}
+.btn{font-family:var(--sans);font-size:.72rem;padding:5px 13px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{color:var(--text);border-color:#555}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.bprimary{background:var(--gold);color:#0c0c0c;border-color:var(--gold);font-weight:500}
+.bprimary:hover{background:var(--gold2);border-color:var(--gold2);color:#0c0c0c}
+.bcopy{background:var(--green);color:#fff;border-color:var(--green)}
+.bcopy:hover{opacity:.85;color:#fff}
+.sbar{display:flex;align-items:center;gap:8px;padding:0 16px;border-top:1px solid var(--border);background:var(--surface);height:34px;font-size:.67rem;color:var(--text3)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.dot.spin{background:var(--amber);animation:pulse 1s ease-in-out infinite}
+.dot.ok{background:var(--green)}
+.dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.pbar{height:2px;background:var(--border);flex-shrink:0;position:relative;overflow:hidden}
+.pfill{height:100%;background:var(--gold);width:0;position:absolute;left:0;top:0;transition:width .3s}
+.pbar.active .pfill{animation:ind 1.4s ease-in-out infinite}
+@keyframes ind{0%{left:-40%;width:40%}100%{left:100%;width:40%}}
+.helpbox{margin:10px 16px 0;padding:10px 14px;border-radius:7px;background:#181400;border:1px solid #353000;flex-shrink:0}
+.helpbox p{font-size:.72rem;color:#c0a040;line-height:1.65}
+.helpbox strong{color:var(--gold)}
+.foot{display:flex;align-items:center;justify-content:flex-end;padding:0 16px;border-top:1px solid var(--border);background:var(--surface)}
+@media(max-width:640px){.workspace{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.dvd{display:none}}
+input[type=file]{display:none}
 </style>
 </head>
 <body>
 <div class="shell">
-
-  <!-- HEADER -->
   <header>
     <div class="logo">Colega de Cena <em>/ Scene Partner</em></div>
-    <div class="header-sep"></div>
-    <div class="header-desc" id="hDesc">Reformatador de Roteiros com IA</div>
-    <div class="header-right">
-      <button class="btn btn-lang" onclick="toggleLang()" id="langBtn">EN</button>
-      <a href="javascript:history.back()" class="btn" id="backBtn">← Voltar ao app</a>
+    <div class="hsep"></div>
+    <div class="htag" id="hTag">Reformatador de Roteiros com IA</div>
+    <div class="hright">
+      <button class="btn" onclick="toggleLang()" id="btnLang">EN</button>
+      <a href="/" class="btn" id="btnBack">← Voltar ao app</a>
     </div>
   </header>
 
-  <!-- WORKSPACE -->
-  <div class="workspace" id="workspace">
-
-    <!-- LEFT PANEL: Input -->
+  <div class="workspace">
     <div class="panel">
-      <div class="panel-top">
-        <span class="panel-label" id="lblInput">Entrada</span>
-        <div class="spacer"></div>
-        <span id="charCount" style="font-size:0.65rem;color:var(--dim);margin-right:6px;">0</span>
-        <button class="btn" onclick="clearInput()" id="btnClear">Limpar</button>
-        <button class="btn btn-primary" onclick="runFormat()" id="btnRun">✦ Formatar com IA</button>
+      <div class="ptop">
+        <span class="plbl" id="lblIn">Entrada</span>
+        <span class="sp"></span>
+        <span id="cc" style="font-size:.65rem;color:var(--text3)"></span>
+        <button class="btn" onclick="doClear()" id="btnClear">Limpar</button>
+        <button class="btn bprimary" id="btnRun" onclick="doFormat()">✦ Formatar com IA</button>
       </div>
-
-      <!-- Format type chips -->
-      <div class="fmt-type-row" id="typeRow">
-        <button class="type-chip active" data-type="auto" onclick="setType(this)">🎯 Auto-detectar</button>
-        <button class="type-chip" data-type="screenplay" onclick="setType(this)">🎬 Roteiro cinema/TV</button>
-        <button class="type-chip" data-type="theater" onclick="setType(this)">🎭 Teatro / peça</button>
-        <button class="type-chip" data-type="table-read" onclick="setType(this)">📋 Table read / transcrição</button>
-        <button class="type-chip" data-type="novel" onclick="setType(this)">📖 Prosa / adaptação</button>
-        <button class="type-chip" data-type="european" onclick="setType(this)">🇪🇺 Formato europeu</button>
-      </div>
-
-      <!-- Drop zone -->
-      <div class="input-body">
-        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-          <div class="drop-icon">PDF</div>
-          <div class="drop-text">
-            <div class="drop-title"><strong id="dropTitle">Clique para fazer upload</strong> ou arraste aqui</div>
-            <div class="drop-sub" id="dropSub">PDF, TXT, Fountain (.fountain), Final Draft (.fdx)</div>
+      <div class="helpbox"><p id="helpTxt">Cole o texto copiado do PDF, ou faça upload do arquivo. A IA detecta automaticamente o formato — roteiro, teatro, table read — e organiza cenas, personagens e diálogos. Depois copie e cole no app.</p></div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+        <div class="dropz" id="dz" onclick="document.getElementById('fi').click()">
+          <div class="dicon">PDF</div>
+          <div class="dinfo">
+            <div class="dtit"><strong id="dTit">Clique para fazer upload</strong> ou arraste aqui</div>
+            <div class="dsub" id="dSub">PDF, TXT, Fountain, FDX</div>
           </div>
-          <input type="file" id="fileInput" accept=".pdf,.txt,.fountain,.ftn,.fdx" onchange="loadFile(this)" />
+          <input type="file" id="fi" accept=".pdf,.txt,.fountain,.ftn,.fdx" onchange="loadFile(this)"/>
         </div>
-        <div class="drop-divider" id="lblOr">ou cole o texto abaixo</div>
-        <textarea id="inputArea"
-          placeholder="Cole aqui o texto copiado do PDF — pode estar bagunçado, com espaços entre letras, quebras erradas, sem formatação. A IA vai identificar e reconstruir cenas, personagens e diálogos."
-          oninput="onInput()"
-          spellcheck="false"
-        ></textarea>
+        <div class="divtxt" id="lblOr">ou cole o texto abaixo</div>
+        <textarea id="ta" spellcheck="false" oninput="onInput()" placeholder="Cole aqui o texto copiado do PDF..."></textarea>
       </div>
-
-      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
-
-      <div class="status-bar">
+      <div class="pbar" id="pbar"><div class="pfill" id="pfill"></div></div>
+      <div class="sbar">
         <div class="dot" id="dot"></div>
-        <span id="statusMsg">Aguardando texto ou upload...</span>
-        <span class="status-right" id="statusRight"></span>
+        <span id="stMsg">Aguardando texto ou upload...</span>
+        <span style="margin-left:auto;font-size:.65rem" id="stR"></span>
       </div>
     </div>
 
-    <!-- DIVIDER -->
-    <div class="divider"></div>
+    <div class="dvd"></div>
 
-    <!-- RIGHT PANEL: Output -->
     <div class="panel">
-      <div class="panel-top">
-        <span class="panel-label" id="lblOutput">Roteiro formatado</span>
-        <div class="spacer"></div>
-        <button class="btn" onclick="clearOutput()" id="btnClearOut">Limpar</button>
-        <button class="btn btn-copy" onclick="copyOutput()" id="btnCopy">⎘ Copiar tudo</button>
+      <div class="ptop">
+        <span class="plbl" id="lblOut">Roteiro formatado</span>
+        <span class="sp"></span>
+        <button class="btn" onclick="clearOut()" id="btnCO">Limpar</button>
+        <button class="btn bcopy" onclick="copyOut()" id="btnCopy">⎘ Copiar tudo</button>
       </div>
+      <div class="oscroll">
+        <div class="oinner" id="out" data-ph="O roteiro formatado aparece aqui.
 
-      <div class="output-body" id="outputBody"
-        data-ph="O roteiro formatado aparece aqui.
+Personagens em dourado
+Diálogos recuados à direita
+Ações em cinza claro
+Cenas em cinza escuro
 
-Personagens em dourado · Diálogos recuados · Ações em cinza
-
-Depois de formatar: clique em Copiar tudo e cole diretamente no Colega de Cena pelo painel de texto (opção Colar/Paste)."></div>
-
-      <div class="status-bar">
-        <span id="outInfo" style="color:var(--dim);font-size:0.68rem;"></span>
-        <span class="status-right" style="font-size:0.65rem;color:var(--dim);" id="outCopyHint"></span>
+Depois de formatar: clique em Copiar tudo
+e cole no app pelo painel lateral → Texto."></div>
       </div>
+      <div class="sbar"><span id="outSt" style="color:var(--text3);font-size:.67rem"></span></div>
     </div>
-
   </div>
 
+  <div class="foot"><span style="font-size:.6rem;color:var(--text3)">© 2026 Luciano Mello · Colega de Cena / Scene Partner</span></div>
 </div>
 
-<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 'use strict';
+if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ── PDF.js worker ──────────────────────────────────────────────────────────
-if (typeof pdfjsLib !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
+let lang=localStorage.getItem('fmt-lang')||'pt';
 
-// ── State ──────────────────────────────────────────────────────────────────
-let lang = localStorage.getItem('fmt-lang') || 'pt';
-let formatType = 'auto';
-
-// ── i18n ───────────────────────────────────────────────────────────────────
-const S = {
-  pt: {
-    hDesc:       'Reformatador de Roteiros com IA',
-    langBtn:     'EN',
-    backBtn:     '← Voltar ao app',
-    lblInput:    'Entrada',
-    lblOutput:   'Roteiro formatado',
-    btnClear:    'Limpar',
-    btnRun:      '✦ Formatar com IA',
-    btnRunning:  '⏳ Formatando...',
-    btnClearOut: 'Limpar',
-    btnCopy:     '⎘ Copiar tudo',
-    btnCopied:   '✓ Copiado!',
-    dropTitle:   'Clique para fazer upload',
-    dropSub:     'PDF, TXT, Fountain (.fountain), Final Draft (.fdx)',
-    lblOr:       'ou cole o texto abaixo',
-    phOutput:    'O roteiro formatado aparece aqui.\n\nPersonagens em dourado · Diálogos recuados · Ações em cinza\n\nDepois de formatar: clique em Copiar tudo e cole diretamente no Colega de Cena pelo painel de texto (opção Colar/Paste).',
-    phInput:     'Cole aqui o texto copiado do PDF — pode estar bagunçado, com espaços entre letras, quebras erradas, sem formatação. A IA vai identificar e reconstruir cenas, personagens e diálogos.',
-    waiting:     'Aguardando texto ou upload...',
-    reading:     'Lendo arquivo...',
-    analyzing:   'IA analisando o roteiro...',
-    formatting:  'Formatando...',
-    done:        'Pronto. Copie e cole no Colega de Cena.',
-    errEmpty:    'Cole ou faça upload de um texto primeiro.',
-    errPdf:      'Erro ao ler PDF: ',
-    errApi:      'Erro na API: ',
-    chars:       n => n.toLocaleString('pt-BR') + ' caracteres',
-    outInfo:     (l, c) => `${l} linhas · ${c.toLocaleString('pt-BR')} caracteres`,
-    outHint:     'Cole no app: painel lateral → Texto → Colar',
-    types: {
-      auto:       '🎯 Auto-detectar',
-      screenplay: '🎬 Roteiro cinema/TV',
-      theater:    '🎭 Teatro / peça',
-      'table-read':'📋 Table read / transcrição',
-      novel:      '📖 Prosa / adaptação',
-      european:   '🇪🇺 Formato europeu',
-    }
-  },
-  en: {
-    hDesc:       'AI Screenplay Reformatter',
-    langBtn:     'PT',
-    backBtn:     '← Back to app',
-    lblInput:    'Input',
-    lblOutput:   'Formatted script',
-    btnClear:    'Clear',
-    btnRun:      '✦ Format with AI',
-    btnRunning:  '⏳ Formatting...',
-    btnClearOut: 'Clear',
-    btnCopy:     '⎘ Copy all',
-    btnCopied:   '✓ Copied!',
-    dropTitle:   'Click to upload',
-    dropSub:     'PDF, TXT, Fountain (.fountain), Final Draft (.fdx)',
-    lblOr:       'or paste text below',
-    phOutput:    'The formatted script appears here.\n\nCharacters in gold · Dialogue indented · Action in gray\n\nAfter formatting: click Copy all and paste into Scene Partner via the text panel (Paste option).',
-    phInput:     'Paste the text copied from your PDF here — it can be messy, with spaces between letters, wrong line breaks, no formatting. The AI will identify and reconstruct scenes, characters and dialogue.',
-    waiting:     'Waiting for text or upload...',
-    reading:     'Reading file...',
-    analyzing:   'AI analyzing the script...',
-    formatting:  'Formatting...',
-    done:        'Done. Copy and paste into Scene Partner.',
-    errEmpty:    'Paste or upload text first.',
-    errPdf:      'Error reading PDF: ',
-    errApi:      'API error: ',
-    chars:       n => n.toLocaleString('en-US') + ' characters',
-    outInfo:     (l, c) => `${l} lines · ${c.toLocaleString('en-US')} characters`,
-    outHint:     'Paste into app: side panel → Text → Paste',
-    types: {
-      auto:       '🎯 Auto-detect',
-      screenplay: '🎬 Film/TV screenplay',
-      theater:    '🎭 Theater / stage play',
-      'table-read':'📋 Table read / transcript',
-      novel:      '📖 Prose / adaptation',
-      european:   '🇪🇺 European format',
-    }
-  }
+const T={
+  pt:{hTag:'Reformatador de Roteiros com IA',btnLang:'EN',btnBack:'← Voltar ao app',lblIn:'Entrada',lblOut:'Roteiro formatado',btnClear:'Limpar',btnCO:'Limpar',btnRun:'✦ Formatar com IA',btnRunning:'⏳ Aguarde...',btnCopy:'⎘ Copiar tudo',btnCopied:'✓ Copiado!',dTit:'Clique para fazer upload',dSub:'PDF, TXT, Fountain, FDX',lblOr:'ou cole o texto abaixo',helpTxt:'Cole o texto copiado do PDF, ou faça upload do arquivo. A IA detecta automaticamente o formato — roteiro, teatro, table read — e organiza cenas, personagens e diálogos. Depois copie e cole no app.',ta:'Cole aqui o texto copiado do PDF — pode estar bagunçado, com espaços entre letras, quebras erradas...',phOut:'O roteiro formatado aparece aqui.\n\nPersonagens em dourado\nDiálogos recuados à direita\nAções em cinza claro\nCenas em cinza escuro\n\nDepois de formatar: clique em Copiar tudo\ne cole no app pelo painel lateral → Texto.',waiting:'Aguardando texto ou upload...',reading:'Lendo arquivo...',analyzing:'IA analisando o roteiro...',formatting:'Formatando...',done:'Pronto. Copie e cole no Colega de Cena.',errEmpty:'Cole ou faça upload de um texto primeiro.',errApi:'Erro: ',errPdf:'Erro ao ler PDF: ',chars:n=>n.toLocaleString('pt-BR')+' car.',outInfo:(l,c)=>`${l} linhas · ${c.toLocaleString('pt-BR')} caracteres`},
+  en:{hTag:'AI Screenplay Reformatter',btnLang:'PT',btnBack:'← Back to app',lblIn:'Input',lblOut:'Formatted script',btnClear:'Clear',btnCO:'Clear',btnRun:'✦ Format with AI',btnRunning:'⏳ Please wait...',btnCopy:'⎘ Copy all',btnCopied:'✓ Copied!',dTit:'Click to upload',dSub:'PDF, TXT, Fountain, FDX',lblOr:'or paste text below',helpTxt:'Paste the text copied from your PDF, or upload the file. The AI automatically detects the format — screenplay, stage play, table read — and organizes scenes, characters and dialogue. Then copy and paste into the app.',ta:'Paste the raw text from your PDF here — it can be messy, with spaces between letters, wrong line breaks...',phOut:'Formatted script appears here.\n\nCharacters in gold\nDialogue indented right\nAction in light gray\nScene headings in dark gray\n\nAfter formatting: click Copy all\nand paste into the app via side panel → Text.',waiting:'Waiting for text or upload...',reading:'Reading file...',analyzing:'AI analyzing the script...',formatting:'Formatting...',done:'Done. Copy and paste into Scene Partner.',errEmpty:'Paste or upload text first.',errApi:'Error: ',errPdf:'Error reading PDF: ',chars:n=>n.toLocaleString('en-US')+' chars',outInfo:(l,c)=>`${l} lines · ${c.toLocaleString('en-US')} characters`}
 };
 
-function t(key) { return S[lang][key]; }
+function t(k){return T[lang][k]}
 
-// ── Apply language ─────────────────────────────────────────────────────────
-function applyLang() {
-  const s = S[lang];
-  document.getElementById('hDesc').textContent     = s.hDesc;
-  document.getElementById('langBtn').textContent   = s.langBtn;
-  document.getElementById('backBtn').textContent   = s.backBtn;
-  document.getElementById('lblInput').textContent  = s.lblInput;
-  document.getElementById('lblOutput').textContent = s.lblOutput;
-  document.getElementById('btnClear').textContent  = s.btnClear;
-  document.getElementById('btnRun').textContent    = s.btnRun;
-  document.getElementById('btnClearOut').textContent = s.btnClearOut;
-  document.getElementById('btnCopy').textContent   = s.btnCopy;
-  document.getElementById('dropTitle').textContent = s.dropTitle;
-  document.getElementById('dropSub').textContent   = s.dropSub;
-  document.getElementById('lblOr').textContent     = s.lblOr;
-  document.getElementById('outputBody').dataset.ph = s.phOutput;
-  document.getElementById('inputArea').placeholder = s.phInput;
-  document.getElementById('outHint').textContent   = '';
-
-  // Chips
-  Object.entries(s.types).forEach(([key, label]) => {
-    const chip = document.querySelector(`[data-type="${key}"]`);
-    if (chip) chip.textContent = label;
+function applyLang(){
+  ['hTag','btnLang','btnBack','lblIn','lblOut','btnClear','btnCO','btnRun','btnCopy','dTit','dSub','lblOr','helpTxt'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.textContent=t(id);
   });
-
-  setStatus('idle', s.waiting);
-  updateCharCount();
+  document.getElementById('ta').placeholder=t('ta');
+  document.getElementById('out').dataset.ph=t('phOut');
+  setStatus('idle',t('waiting'));
+  updateCC();
 }
 
-function toggleLang() {
-  lang = lang === 'pt' ? 'en' : 'pt';
-  localStorage.setItem('fmt-lang', lang);
-  applyLang();
+function toggleLang(){lang=lang==='pt'?'en':'pt';localStorage.setItem('fmt-lang',lang);applyLang()}
+
+function setStatus(state,msg,right){
+  const dot=document.getElementById('dot');
+  dot.className='dot'+(state==='spin'?' spin':state==='ok'?' ok':state==='err'?' err':'');
+  document.getElementById('stMsg').textContent=msg||'';
+  if(right!==undefined)document.getElementById('stR').textContent=right||'';
 }
 
-// ── Format type ────────────────────────────────────────────────────────────
-function setType(btn) {
-  document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  formatType = btn.dataset.type;
-}
+function setProgress(on){document.getElementById('pbar').classList.toggle('active',on)}
 
-// ── Status ─────────────────────────────────────────────────────────────────
-function setStatus(state, msg, right) {
-  const dot = document.getElementById('dot');
-  dot.className = 'dot' + (state === 'spin' ? ' spin' : state === 'ok' ? ' ok' : state === 'err' ? ' err' : '');
-  document.getElementById('statusMsg').textContent = msg || '';
-  if (right !== undefined) document.getElementById('statusRight').textContent = right;
-}
+function updateCC(){const n=document.getElementById('ta').value.length;document.getElementById('cc').textContent=n?t('chars')(n):''}
+function onInput(){updateCC()}
 
-function setProgress(active) {
-  const bar = document.getElementById('progressBar');
-  bar.classList.toggle('active', active);
-  if (!active) document.getElementById('progressFill').style.width = '0%';
-}
+function doClear(){document.getElementById('ta').value='';updateCC();setStatus('idle',t('waiting'))}
+function clearOut(){document.getElementById('out').innerHTML='';document.getElementById('outSt').textContent=''}
 
-// ── Char count ─────────────────────────────────────────────────────────────
-function updateCharCount() {
-  const n = document.getElementById('inputArea').value.length;
-  document.getElementById('charCount').textContent = t('chars')(n);
-}
-function onInput() { updateCharCount(); }
-
-// ── Clear ──────────────────────────────────────────────────────────────────
-function clearInput() {
-  document.getElementById('inputArea').value = '';
-  updateCharCount();
-  setStatus('idle', t('waiting'));
-}
-function clearOutput() {
-  document.getElementById('outputBody').innerHTML = '';
-  document.getElementById('outInfo').textContent = '';
-  document.getElementById('outCopyHint').textContent = '';
-}
-
-// ── Copy ───────────────────────────────────────────────────────────────────
-function copyOutput() {
-  const el = document.getElementById('outputBody');
-  const text = el.innerText || el.textContent || '';
-  if (!text.trim()) return;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('btnCopy');
-    btn.textContent = t('btnCopied');
-    setTimeout(() => { btn.textContent = t('btnCopy'); }, 2200);
+function copyOut(){
+  const el=document.getElementById('out');
+  const text=el.innerText||el.textContent||'';
+  if(!text.trim())return;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('btnCopy');
+    btn.textContent=t('btnCopied');
+    setTimeout(()=>{btn.textContent=t('btnCopy')},2200);
   });
 }
 
-// ── File upload ────────────────────────────────────────────────────────────
-async function loadFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  setStatus('spin', t('reading'), file.name);
-  setProgress(true);
-
-  try {
-    if (ext === 'pdf') {
-      await loadPDF(file);
-    } else {
-      const text = await file.text();
-      document.getElementById('inputArea').value = text;
-      updateCharCount();
-      setStatus('ok', file.name, t('chars')(text.length));
+async function loadPDF(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let full='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    const lm={};
+    for(const item of content.items){
+      if(!item.str.trim())continue;
+      const y=Math.round(item.transform[5]);
+      if(!lm[y])lm[y]=[];
+      lm[y].push({x:item.transform[4],str:item.str});
     }
-  } catch (e) {
-    setStatus('err', t('errPdf') + e.message);
-  } finally {
-    setProgress(false);
-    input.value = '';
-  }
-}
-
-async function loadPDF(file) {
-  if (typeof pdfjsLib === 'undefined') {
-    throw new Error('PDF.js não disponível. Use Chrome ou Firefox.');
-  }
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  let full = '';
-
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page    = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    const items   = content.items;
-
-    // Group by Y position to reconstruct lines
-    const lineMap = {};
-    for (const item of items) {
-      if (!item.str.trim()) continue;
-      const y = Math.round(item.transform[5]);
-      if (!lineMap[y]) lineMap[y] = [];
-      lineMap[y].push({ x: item.transform[4], str: item.str });
+    const ys=Object.keys(lm).map(Number).sort((a,b)=>b-a);
+    for(const y of ys){
+      const words=lm[y].sort((a,b)=>a.x-b.x);
+      let line=words.map(w=>w.str).join(' ');
+      line=line.replace(/\b(\S) (?=\S\b)/g,'$1').replace(/  +/g,' ').trim();
+      if(line)full+=line+'\n';
     }
-
-    const yKeys = Object.keys(lineMap).map(Number).sort((a, b) => b - a);
-    let pageText = '';
-
-    for (const y of yKeys) {
-      const words = lineMap[y].sort((a, b) => a.x - b.x);
-      // Reconstruct line: join words, collapse spaces between single chars (spaced letters)
-      let line = words.map(w => w.str).join(' ');
-      // Fix "H e a r t  o f  D a r k n e s s" style spaced letters
-      line = line.replace(/(?<=\b\S) (?=\S\b)/g, '').replace(/  +/g, ' ').trim();
-      if (line) pageText += line + '\n';
-    }
-
-    full += pageText + '\n';
+    full+='\n';
   }
-
-  const cleaned = full.trim();
-  document.getElementById('inputArea').value = cleaned;
-  updateCharCount();
-  setStatus('ok', file.name, `${pdf.numPages} pgs · ${t('chars')(cleaned.length)}`);
+  return full.trim();
 }
 
-// ── Drag and drop ──────────────────────────────────────────────────────────
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
-dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('over');
-  const file = e.dataTransfer.files[0];
-  if (file) loadFile({ files: [file], value: '' });
-});
-
-// ── System prompt builder ──────────────────────────────────────────────────
-function buildSystemPrompt() {
-  const typeInstructions = {
-    auto: `Analyze the text and determine what kind of script it is (film/TV screenplay, stage play, table read transcript, prose adaptation, or another format), then apply the appropriate formatting rules.`,
-    screenplay: `This is a film or TV screenplay in standard Hollywood/US format (or a similar format with scene headings, action lines, character cues centered above dialogue).`,
-    theater: `This is a stage play or theatrical script. Character names typically precede their lines with a colon or on a separate line. Stage directions may be in parentheses or italics. Adapt to the standard output format.`,
-    'table-read': `This is a table read transcript or a reading script. It may have speaker names followed by colons, timestamps, or informal formatting. Extract characters and dialogue faithfully.`,
-    novel: `This is prose or a novel being adapted. Identify narration as ACTION, identify direct speech as DIALOGUE with the speaker as CHARACTER, and identify scene/location changes as SCENE.`,
-    european: `This is a screenplay in a European format (e.g. French, German, Italian style), which may have different conventions for scene headings, character names, and action lines. Adapt faithfully to the output format.`
-  };
-
-  return `You are an expert screenplay formatter with deep knowledge of all dramatic writing formats.
-
-The user will give you raw text from a script that may be poorly extracted from a PDF, have garbled characters, broken lines, extra spaces between letters (e.g. "H e l l o"), merged paragraphs, page numbers, headers, watermarks, or any other artifact.
-
-FORMAT TYPE: ${typeInstructions[formatType] || typeInstructions.auto}
-
-Your output must use ONLY these five line prefixes. Every single output line must start with one of them:
-
-SCENE: [scene heading — uppercase, e.g. INT. KITCHEN - NIGHT]
-ACTION: [action line / stage direction / narration]
-CHARACTER: [character name only — uppercase, no parentheticals on this line]
-DIRECTION: [(parenthetical direction in parentheses)]
-DIALOGUE: [the spoken line — no quotes]
-
-CRITICAL RULES:
-1. Output ONLY formatted screenplay lines. No commentary, no preamble, no "Here is the formatted script:".
-2. Preserve the original text faithfully — do not paraphrase, summarize, or invent anything.
-3. Fix extraction artifacts: reconstruct "s p a c e d  l e t t e r s" back to normal words, join broken dialogue lines into one DIALOGUE entry, remove page numbers (standalone numbers), remove running headers/footers.
-4. If a CHARACTER line is followed immediately by a parenthetical, output it as DIRECTION on the next line.
-5. When in doubt whether something is ACTION or DIALOGUE, use context — if a character was just named, what follows is probably DIALOGUE.
-6. Output in the same language as the input. Do not translate.
-7. Do not add blank lines except where they naturally separate scenes or major beats.`;
+async function loadFile(input){
+  const file=input.files[0];if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  setStatus('spin',t('reading'),file.name);setProgress(true);
+  try{
+    let text;
+    if(ext==='pdf'){
+      if(typeof pdfjsLib==='undefined')throw new Error('PDF.js não disponível.');
+      text=await loadPDF(file);
+    }else{text=await file.text()}
+    document.getElementById('ta').value=text;updateCC();
+    setStatus('ok',file.name,t('chars')(text.length));
+  }catch(e){setStatus('err',t('errPdf')+e.message)}
+  finally{setProgress(false);input.value=''}
 }
 
-// ── Render output with color coding ────────────────────────────────────────
-function renderOutput(raw, container) {
-  const lines = raw.split('\n');
-  let html = '';
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f)loadFile({files:[f],value:''})});
 
-  for (const line of lines) {
-    const t = line.trimStart();
-    if (!t) { html += '\n'; continue; }
+const SYSTEM=`You are an expert screenplay formatter. The user gives you raw text from a script that may have broken lines, spaced letters (H e l l o), merged paragraphs, page numbers, headers, or other PDF extraction artifacts.
 
-    if      (t.startsWith('SCENE:'))      html += `<span class="ls">${esc(t)}</span>\n`;
-    else if (t.startsWith('CHARACTER:'))  html += `<span class="lc">${esc(t.slice(10).trim())}</span>\n`;
-    else if (t.startsWith('DIALOGUE:'))   html += `<span class="ld">${esc(t.slice(9).trim())}</span>\n`;
-    else if (t.startsWith('DIRECTION:'))  html += `<span class="ldi">${esc(t.slice(10).trim())}</span>\n`;
-    else if (t.startsWith('ACTION:'))     html += `<span class="la">${esc(t.slice(7).trim())}</span>\n`;
-    else                                  html += `<span class="la">${esc(t)}</span>\n`;
-  }
+Silently determine the format (film screenplay, stage play, table read, prose) then output ONLY formatted lines using these prefixes — every line must start with one:
 
-  container.innerHTML = html;
-}
+SCENE: [scene heading uppercase]
+ACTION: [action/narration/stage direction]
+CHARACTER: [character name uppercase, no parentheticals]
+DIRECTION: [(parenthetical)]
+DIALOGUE: [spoken line, no quotes]
 
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+Rules: no preamble or commentary. Preserve original text faithfully. Fix spaced letters and broken lines. Remove page numbers and headers. When unsure, use ACTION. Output same language as input.`;
 
-// ── Main format function ───────────────────────────────────────────────────
-async function runFormat() {
-  const input = document.getElementById('inputArea').value.trim();
-  if (!input) { setStatus('err', t('errEmpty')); return; }
-
-  const btn = document.getElementById('btnRun');
-  btn.disabled = true;
-  btn.textContent = t('btnRunning');
-  clearOutput();
-  setProgress(true);
-  setStatus('spin', t('analyzing'));
-
-  const out = document.getElementById('outputBody');
-  let raw = '';
-
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model:      'claude-sonnet-4-20250514',
-        max_tokens: 8000,
-        stream:     true,
-        system:     buildSystemPrompt(),
-        messages:   [{ role: 'user', content: input }]
-      })
+async function doFormat(){
+  const input=document.getElementById('ta').value.trim();
+  if(!input){setStatus('err',t('errEmpty'));return}
+  const btn=document.getElementById('btnRun');
+  btn.disabled=true;btn.textContent=t('btnRunning');
+  clearOut();setProgress(true);setStatus('spin',t('analyzing'));
+  const out=document.getElementById('out');
+  let raw='';
+  try{
+    const resp=await fetch('/api/format',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:8000,stream:true,system:SYSTEM,messages:[{role:'user',content:input}]})
     });
-
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
-    setStatus('spin', t('formatting'));
-    const reader  = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      const { value, done: d } = await reader.read();
-      done = d;
-      if (!value) continue;
-
-      const chunk = decoder.decode(value, { stream: true });
-      for (const line of chunk.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') continue;
-        try {
-          const json = JSON.parse(data);
-          const text = json?.delta?.text || '';
-          if (text) {
-            raw += text;
-            renderOutput(raw, out);
-            out.scrollTop = out.scrollHeight;
-          }
-        } catch (_) {}
+    if(!resp.ok){const err=await resp.text();throw new Error('HTTP '+resp.status+' '+err.slice(0,100))}
+    setStatus('spin',t('formatting'));
+    const reader=resp.body.getReader();const dec=new TextDecoder();let done=false;
+    while(!done){
+      const{value,done:d}=await reader.read();done=d;if(!value)continue;
+      for(const line of dec.decode(value,{stream:true}).split('\n')){
+        if(!line.startsWith('data: '))continue;
+        const data=line.slice(6).trim();if(data==='[DONE]')continue;
+        try{const j=JSON.parse(data);const txt=j?.delta?.text||'';if(txt){raw+=txt;renderOut(raw,out);out.parentElement.scrollTop=out.parentElement.scrollHeight}}catch(_){}
       }
     }
-
-    renderOutput(raw, out);
-    const lineCount = raw.split('\n').filter(l => l.trim()).length;
-    document.getElementById('outInfo').textContent = t('outInfo')(lineCount, raw.length);
-    document.getElementById('outCopyHint').textContent = t('outHint');
-    setProgress(false);
-    setStatus('ok', t('done'));
-
-  } catch (e) {
-    setProgress(false);
-    setStatus('err', t('errApi') + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = t('btnRun');
-  }
+    renderOut(raw,out);
+    const lines=raw.split('\n').filter(l=>l.trim()).length;
+    document.getElementById('outSt').textContent=t('outInfo')(lines,raw.length);
+    setStatus('ok',t('done'));
+  }catch(e){setStatus('err',t('errApi')+e.message)}
+  finally{setProgress(false);btn.disabled=false;btn.textContent=t('btnRun')}
 }
 
-// ── Keyboard shortcut ──────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-    e.preventDefault();
-    runFormat();
+function renderOut(raw,container){
+  let html='';
+  for(const line of raw.split('\n')){
+    const s=line.trimStart();
+    if(!s){html+='\n';continue}
+    if(s.startsWith('SCENE:'))     html+=`<span class="ls">${esc(s)}</span>\n`;
+    else if(s.startsWith('CHARACTER:'))html+=`<span class="lc">${esc(s.slice(10).trim())}</span>\n`;
+    else if(s.startsWith('DIALOGUE:')) html+=`<span class="ld">${esc(s.slice(9).trim())}</span>\n`;
+    else if(s.startsWith('DIRECTION:'))html+=`<span class="ldi">${esc(s.slice(10).trim())}</span>\n`;
+    else if(s.startsWith('ACTION:'))   html+=`<span class="la">${esc(s.slice(7).trim())}</span>\n`;
+    else html+=`<span class="la">${esc(s)}</span>\n`;
   }
-});
+  container.innerHTML=html;
+}
 
-// ── Init ───────────────────────────────────────────────────────────────────
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();doFormat()}});
+
 applyLang();
 </script>
 </body>
