@@ -56,6 +56,9 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             <a href="#recursos" className="hover:text-[#f0ece4] transition-colors">
               {lang === 'pt' ? 'Recursos' : 'Features'}
             </a>
+            <a href="/formatar.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#e8c97a] transition-colors">
+              {lang === 'pt' ? '✦ Reformatar PDF' : '✦ Reformat PDF'}
+            </a>
             <button onClick={onStart} className="bg-[#e8c97a] text-[#080808] px-5 py-2 rounded-md font-medium hover:bg-[#c4a052] transition-all transform hover:-translate-y-0.5">
               {lang === 'pt' ? 'Experimentar Grátis →' : 'Try for Free →'}
             </button>
@@ -158,6 +161,47 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         </div>
       </section>
 
+      {/* PDF Formatter Banner */}
+      <section className="py-16 px-6 md:px-16 border-t border-[#222] bg-[#0d0d0d]">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-10">
+          <div className="flex-1">
+            <div className="text-[0.68rem] tracking-[0.15em] uppercase text-[#c4a052] mb-3">
+              {lang === 'pt' ? 'Problema com PDF?' : 'PDF not formatting well?'}
+            </div>
+            <h2 className="font-['Playfair_Display'] text-3xl md:text-4xl mb-4 leading-snug">
+              {lang === 'pt' ? <>Reformate seu roteiro <em>com inteligência artificial</em></> : <>Reformat your script <em>with artificial intelligence</em></>}
+            </h2>
+            <p className="text-[#666] text-sm leading-relaxed mb-4">
+              {lang === 'pt'
+                ? 'PDFs de roteiro costumam ter espaços entre letras, quebras erradas e formatação corrompida. Nosso reformatador com IA lê o texto bruto, identifica cenas, personagens e diálogos, e devolve um texto limpo pronto para usar no app.'
+                : 'Screenplay PDFs often have spaces between letters, wrong line breaks, and corrupted formatting. Our AI reformatter reads the raw text, identifies scenes, characters and dialogue, and returns clean text ready to use in the app.'}
+            </p>
+            <p className="text-[#555] text-xs leading-relaxed mb-6">
+              {lang === 'pt'
+                ? 'Funciona também com roteiros de teatro, transcrições de table read, formatos europeus e qualquer texto dramático — a IA entende o contexto e aplica a formatação correta.'
+                : 'Also works with stage plays, table read transcripts, European formats and any dramatic text — the AI understands context and applies the correct formatting.'}
+            </p>
+            <a
+              href="/formatar.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-transparent border border-[#e8c97a] text-[#e8c97a] px-7 py-3 rounded-lg text-sm font-medium hover:bg-[#e8c97a] hover:text-[#080808] transition-all"
+            >
+              {lang === 'pt' ? '✦ Abrir reformatador de roteiros' : '✦ Open script reformatter'}
+            </a>
+          </div>
+          <div className="w-full md:w-80 bg-[#111] border border-[#222] rounded-xl p-6 font-mono text-xs leading-loose shrink-0">
+            <div className="text-[#555] mb-1">// antes</div>
+            <div className="text-[#444] mb-4">{'H e a r t  o f  D a r k n e s s\nA L B R I G H T\nD o n\' t  " L o o k ,  N o r a"  m e ...'}</div>
+            <div className="text-[#555] mb-1">// depois</div>
+            <div className="text-[#c4a052]">CHARACTER: ALBRIGHT</div>
+            <div className="text-[#f0ece4] pl-4">Don't "Look, Nora" me.</div>
+            <div className="text-[#c4a052] mt-1">CHARACTER: CAL</div>
+            <div className="text-[#f0ece4] pl-4">Nora, please—</div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Final */}
       <section className="py-24 px-6 md:px-16 border-t border-[#222] text-center">
         <h2 className="font-['Playfair_Display'] text-4xl md:text-6xl mb-6" dangerouslySetInnerHTML={{ __html: t['final.title'] }} />
@@ -170,7 +214,13 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       <footer className="py-8 px-6 md:px-16 border-t border-[#222] flex flex-col md:flex-row justify-between items-center gap-4 text-[#666] text-xs">
         <div className="font-['Playfair_Display'] text-sm text-[#e8c97a]">Colega de Cena</div>
         <p>{t['footer.created']}</p>
-        <p>© 2026 Colega de Cena · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
+        <div className="flex items-center gap-4">
+          <a href="/formatar.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#e8c97a] transition-colors">
+            {lang === 'pt' ? 'Reformatar PDF' : 'Reformat PDF'}
+          </a>
+          <span className="text-[#333]">·</span>
+          <p>© 2026 Luciano Mello · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
+        </div>
       </footer>
 
       <style>{`
