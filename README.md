@@ -143,6 +143,6 @@ colegadecenav4/
 
 Criado por **Luciano Mello** — cineasta e roteirista.
 
-[site]([https://stage32.com](https://lucianomello.46graus.com/)).
+https://lucianomello.46graus.com 
 
 © 2026 Luciano Mello · Colega de Cena / Scene Partner
