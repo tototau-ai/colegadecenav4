@@ -156,6 +156,14 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             <a href="#recursos" className="hover:text-[#f0ece4] transition-colors">
               {lang === 'pt' ? 'Recursos' : 'Features'}
             </a>
+            <a
+              href="https://youtube.com/playlist?list=PL7sThU9gIoMec2EQ9ZB_KZv888x5bAzy6&si=0-aSpwPj7a25L-GR"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#e8c97a] transition-colors flex items-center gap-1"
+            >
+              ▶ {lang === 'pt' ? 'Tutoriais' : 'Tutorials'}
+            </a>
             <button onClick={onStart} className="bg-[#e8c97a] text-[#080808] px-5 py-2 rounded-md font-medium hover:bg-[#c4a052] transition-all transform hover:-translate-y-0.5">
               {lang === 'pt' ? 'Experimentar Grátis →' : 'Try for Free →'}
             </button>
@@ -303,7 +311,18 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       <footer className="py-8 px-6 md:px-16 border-t border-[#222] flex flex-col md:flex-row justify-between items-center gap-4 text-[#666] text-xs">
         <div className="font-['Playfair_Display'] text-sm text-[#e8c97a]">Colega de Cena</div>
         <p>{t['footer.created']}</p>
-        <p>© 2026 Luciano Mello · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://youtube.com/playlist?list=PL7sThU9gIoMec2EQ9ZB_KZv888x5bAzy6&si=0-aSpwPj7a25L-GR"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#e8c97a] transition-colors"
+          >
+            ▶ {lang === 'pt' ? 'Tutoriais' : 'Tutorials'}
+          </a>
+          <span className="text-[#333]">·</span>
+          <p>© 2026 Luciano Mello · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
+        </div>
       </footer>
 
       <style>{`

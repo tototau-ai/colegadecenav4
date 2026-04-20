@@ -94,6 +94,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const [actorCharacter, setActorCharacter] = useState('');
   const [isWaitingForActor, setIsWaitingForActor] = useState(false);
   const [narratorVoiceId, setNarratorVoiceId] = useState<string | null>(null);
+  const [narratorCartVoiceId, setNarratorCartVoiceId] = useState<string | null>(null);
   const [narratorProfile, setNarratorProfile] = useState('neutro');
   
   const isPlayingRef = useRef(false);
@@ -279,11 +280,11 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     stopAudio();
 
     const charVoiceId = narrador ? characters[narrador]?.elVozId : narratorVoiceId;
-    const charCartId  = narrador ? characters[narrador]?.cartVozId : undefined;
+    const charCartId  = narrador ? characters[narrador]?.cartVozId : narratorCartVoiceId;
 
     // Cartesia
     if (voiceProvider === 'cartesia' && cartKey && cartVoices.length) {
-      const vid = charCartId || (cartVoices[0]?.id);
+      const vid = charCartId || cartVoices[0]?.id;
       if (vid) { speakWithCartesia(texto, vid, onEnd); return; }
     }
 
@@ -705,7 +706,13 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                 <div className="w-8 h-8 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[0.65rem] font-bold shrink-0 text-[#777]">NA</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[0.78rem] font-medium truncate">{t['sidebar.narrator']}</div>
-                  <div className="text-[0.65rem] text-[#777] truncate">{narratorVoiceId && elVoices.length ? `EL: ${elVoices.find((v: any) => v.voice_id === narratorVoiceId)?.name}` : `${CASTING_PROFILES.find(p => p.id === narratorProfile)?.icon} ${CASTING_PROFILES.find(p => p.id === narratorProfile)?.label}`}</div>
+                  <div className="text-[0.65rem] text-[#777] truncate">
+                    {voiceProvider === 'cartesia' && narratorCartVoiceId && cartVoices.length
+                      ? `Cart: ${cartVoices.find((v: any) => v.id === narratorCartVoiceId)?.name || '—'}`
+                      : narratorVoiceId && elVoices.length
+                        ? `EL: ${elVoices.find((v: any) => v.voice_id === narratorVoiceId)?.name}`
+                        : `${CASTING_PROFILES.find(p => p.id === narratorProfile)?.icon} ${CASTING_PROFILES.find(p => p.id === narratorProfile)?.label}`}
+                  </div>
                 </div>
                 <button onClick={() => setShowVoiceModal('__narrator__')} className="text-[0.7rem] text-[#e8d5a3] border border-[#e8d5a3]/30 rounded-lg px-3 py-1.5 hover:bg-[#e8d5a3] hover:text-[#0a0a0a] transition-all font-medium">{t['sidebar.changeVoice']}</button>
               </div>
@@ -983,13 +990,17 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                       {cartVoices
                         .filter((v: any) => !searchTerm || v.name.toLowerCase().includes(searchTerm.toLowerCase()))
                         .map((v: any) => {
-                          const currentId = characters[showVoiceModal!]?.cartVozId;
+                          const currentId = showVoiceModal === '__narrator__'
+                            ? narratorCartVoiceId
+                            : characters[showVoiceModal!]?.cartVozId;
                           const isSelected = currentId === v.id;
                           return (
                             <button
                               key={v.id}
                               onClick={() => {
-                                if (showVoiceModal !== '__narrator__') {
+                                if (showVoiceModal === '__narrator__') {
+                                  setNarratorCartVoiceId(v.id);
+                                } else {
                                   setCharacters(prev => ({ ...prev, [showVoiceModal!]: { ...prev[showVoiceModal!], cartVozId: v.id } }));
                                 }
                                 setVoiceProvider('cartesia');
