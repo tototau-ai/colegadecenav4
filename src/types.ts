@@ -14,6 +14,7 @@ export interface Character {
   bg: string;
   iniciais: string;
   elVozId: string;
+  cartVozId: string;
 }
 
 export interface CastingProfile {
