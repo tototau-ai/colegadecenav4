@@ -4,6 +4,106 @@ import { Play, Users, Globe, Shield, CheckCircle, ArrowRight, Mic, Languages } f
 import pt from '../locales/pt';
 import en from '../locales/en';
 
+const PROMPT_PT = `Formate o texto abaixo seguindo EXATAMENTE estas regras:
+
+MANTER APENAS:
+- Cabeçalhos de cena no formato: INT. ou EXT. + LOCAL + PERÍODO DO DIA
+- Ações em texto simples e direto
+- Nome de personagem
+- Diálogo
+
+REMOVER COMPLETAMENTE:
+- Títulos da obra, nome de autor, lista de personagens
+- Indicação de ato, cena, numeração ou estrutura teatral
+- Códigos, siglas ou marcações técnicas
+- Indicações como CONT'D, MORE, etc.
+- Comentários editoriais ou literários
+
+AÇÃO:
+- Converter qualquer rubrica, parênteses ou descrição em ação simples
+- Não interpretar, não expandir e não resumir
+- Manter apenas o que for visível ou executável em cena
+
+DIÁLOGO:
+- Nome do personagem em MAIÚSCULO
+- Linha abaixo com o diálogo
+- Remover indicações como "(emocionado)", "(à parte)" etc.
+- Não reescrever falas, apenas corrigir gramática
+
+FORMATAÇÃO:
+- Texto limpo, sem explicações
+- Sem comentários fora do roteiro
+- Sem adicionar conteúdo novo
+- Manter ordem original do texto
+
+LINGUAGEM:
+- Corrigir ortografia e pontuação
+- Não alterar estilo ou intenção
+
+Retorne apenas o roteiro formatado.
+
+TEXTO: [cole aqui]`;
+
+const PROMPT_EN = `Format the text below following EXACTLY these rules:
+
+KEEP ONLY:
+- Scene headings in format: INT. or EXT. + LOCATION + TIME OF DAY
+- Action in plain, direct text
+- Character names
+- Dialogue
+
+REMOVE COMPLETELY:
+- Title, author name, character list
+- Act/scene numbers or theatrical structure
+- Technical codes or markings
+- CONT'D, MORE, etc.
+- Editorial or literary comments
+
+ACTION:
+- Convert any stage directions, parentheses or descriptions into simple action
+- Do not interpret, expand or summarize
+- Keep only what is visible or executable on screen
+
+DIALOGUE:
+- Character name in UPPERCASE
+- Dialogue on the line below
+- Remove directions like "(emotional)", "(aside)" etc.
+- Do not rewrite lines, only correct grammar
+
+FORMATTING:
+- Clean text, no explanations
+- No comments outside the script
+- No added content
+- Keep original order
+
+LANGUAGE:
+- Fix spelling and punctuation
+- Do not alter style or intent
+
+Return only the formatted script.
+
+TEXT: [paste here]`;
+
+function CopyPromptButton({ lang }: { lang: 'pt' | 'en' }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(lang === 'pt' ? PROMPT_PT : PROMPT_EN).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+  return (
+    <button
+      onClick={copy}
+      className="flex items-center gap-2 text-[0.7rem] border border-[#333] rounded-lg px-4 py-1.5 transition-all hover:border-[#e8c97a] hover:text-[#e8c97a] text-[#666]"
+    >
+      {copied
+        ? (lang === 'pt' ? '✓ Copiado!' : '✓ Copied!')
+        : (lang === 'pt' ? '⎘ Copiar prompt' : '⎘ Copy prompt')}
+    </button>
+  );
+}
+
 interface LandingPageProps {
   onStart: () => void;
 }
@@ -55,9 +155,6 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             </a>
             <a href="#recursos" className="hover:text-[#f0ece4] transition-colors">
               {lang === 'pt' ? 'Recursos' : 'Features'}
-            </a>
-            <a href="/formatar.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#e8c97a] transition-colors">
-              {lang === 'pt' ? '✦ Reformatar PDF' : '✦ Reformat PDF'}
             </a>
             <button onClick={onStart} className="bg-[#e8c97a] text-[#080808] px-5 py-2 rounded-md font-medium hover:bg-[#c4a052] transition-all transform hover:-translate-y-0.5">
               {lang === 'pt' ? 'Experimentar Grátis →' : 'Try for Free →'}
@@ -161,34 +258,35 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         </div>
       </section>
 
-      {/* PDF Formatter Banner */}
+      {/* Prompt Section */}
       <section className="py-16 px-6 md:px-16 border-t border-[#222] bg-[#0d0d0d]">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-10">
-          <div className="max-w-2xl">
-            <div className="text-[0.68rem] tracking-[0.15em] uppercase text-[#c4a052] mb-3">
-              {lang === 'pt' ? 'Problema com PDF?' : 'PDF not formatting well?'}
+        <div className="max-w-3xl mx-auto">
+          <div className="text-[0.68rem] tracking-[0.15em] uppercase text-[#c4a052] mb-3">
+            {lang === 'pt' ? 'PDF com formatação incorreta?' : 'PDF not formatting well?'}
+          </div>
+          <h2 className="font-['Playfair_Display'] text-3xl md:text-4xl mb-4 leading-snug">
+            {lang === 'pt'
+              ? <>Formate com a <em>IA da sua escolha</em></>
+              : <>Format with the <em>AI of your choice</em></>}
+          </h2>
+          <p className="text-[#666] text-sm leading-relaxed mb-8 max-w-xl">
+            {lang === 'pt'
+              ? 'Se o seu PDF chegou com espaços, quebras erradas ou formatação corrompida, use o prompt abaixo em qualquer IA (ChatGPT, Claude, Gemini...) para reformatar antes de carregar no app.'
+              : 'If your PDF has extra spaces, wrong line breaks or corrupted formatting, use the prompt below in any AI (ChatGPT, Claude, Gemini...) to reformat before loading into the app.'}
+          </p>
+          <div className="bg-[#111] border border-[#222] rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#222]">
+              <span className="text-[0.65rem] tracking-widest uppercase text-[#555]">
+                {lang === 'pt' ? 'Prompt de formatação' : 'Formatting prompt'}
+              </span>
+              <CopyPromptButton lang={lang} />
             </div>
-            <h2 className="font-['Playfair_Display'] text-3xl md:text-4xl mb-4 leading-snug">
-              {lang === 'pt' ? <>Reformate seu roteiro <em>com inteligência artificial</em></> : <>Reformat your script <em>with artificial intelligence</em></>}
-            </h2>
-            <p className="text-[#666] text-sm leading-relaxed mb-4">
-              {lang === 'pt'
-                ? 'PDFs de roteiro costumam ter espaços entre letras, quebras erradas e formatação corrompida. Nosso reformatador com IA lê o texto bruto, identifica cenas, personagens e diálogos, e devolve um texto limpo pronto para usar no app.'
-                : 'Screenplay PDFs often have spaces between letters, wrong line breaks, and corrupted formatting. Our AI reformatter reads the raw text, identifies scenes, characters and dialogue, and returns clean text ready to use in the app.'}
-            </p>
-            <p className="text-[#555] text-xs leading-relaxed mb-6">
-              {lang === 'pt'
-                ? 'Funciona também com roteiros de teatro, transcrições de table read, formatos europeus e qualquer texto dramático — a IA entende o contexto e aplica a formatação correta.'
-                : 'Also works with stage plays, table read transcripts, European formats and any dramatic text — the AI understands context and applies the correct formatting.'}
-            </p>
-            <a
-              href="/formatar.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-transparent border border-[#e8c97a] text-[#e8c97a] px-7 py-3 rounded-lg text-sm font-medium hover:bg-[#e8c97a] hover:text-[#080808] transition-all"
-            >
-              {lang === 'pt' ? '✦ Abrir reformatador de roteiros' : '✦ Open script reformatter'}
-            </a>
+            <div className="px-5 py-4 font-mono text-[0.7rem] text-[#666] leading-relaxed max-h-48 overflow-y-auto">
+              <span className="text-[#444]">{lang === 'pt' ? '// Cole em qualquer IA, depois adicione seu texto no final' : '// Paste into any AI, then add your text at the end'}</span>{'\n\n'}
+              <span className="text-[#c4a052]">Formate o texto abaixo seguindo EXATAMENTE estas regras:</span>{'\n\n'}
+              <span className="text-[#888]">Manter: cabeçalhos de cena (INT./EXT.), ações, nomes e diálogos.{'\n'}Remover: títulos, autores, numerações, CONT'D, MORE, comentários.{'\n'}Ações: converter rubricas em ação simples, sem interpretar.{'\n'}Diálogo: nome em MAIÚSCULO, fala na linha abaixo, sem direções.{'\n'}Retorne apenas o roteiro formatado, sem explicações.</span>{'\n\n'}
+              <span className="text-[#555]">TEXTO: [cole aqui]</span>
+            </div>
           </div>
         </div>
       </section>
@@ -205,13 +303,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       <footer className="py-8 px-6 md:px-16 border-t border-[#222] flex flex-col md:flex-row justify-between items-center gap-4 text-[#666] text-xs">
         <div className="font-['Playfair_Display'] text-sm text-[#e8c97a]">Colega de Cena</div>
         <p>{t['footer.created']}</p>
-        <div className="flex items-center gap-4">
-          <a href="/formatar.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#e8c97a] transition-colors">
-            {lang === 'pt' ? 'Reformatar PDF' : 'Reformat PDF'}
-          </a>
-          <span className="text-[#333]">·</span>
-          <p>© 2026 Luciano Mello · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
-        </div>
+        <p>© 2026 Luciano Mello · <button onClick={onStart} className="hover:text-[#f0ece4]">{lang === 'pt' ? 'Abrir App' : 'Open App'}</button></p>
       </footer>
 
       <style>{`

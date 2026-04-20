@@ -47,6 +47,26 @@ function deveExibir(l: ScriptLine, readMode: 'tudo' | 'dialogos' | 'acao'): bool
   return true;
 }
 
+const PROMPT_PT = `Formate o texto abaixo seguindo EXATAMENTE estas regras:
+
+MANTER APENAS: cabeçalhos de cena (INT./EXT. + LOCAL + PERÍODO), ações simples, nomes de personagem e diálogos.
+REMOVER: títulos, autor, lista de personagens, numerações, atos/cenas, CONT'D, MORE, comentários editoriais.
+AÇÃO: converter rubricas e parênteses em ação simples. Não interpretar nem expandir.
+DIÁLOGO: nome em MAIÚSCULO, fala na linha abaixo, sem direções entre parênteses.
+Retorne apenas o roteiro formatado, sem explicações.
+
+TEXTO: [cole aqui]`;
+
+const PROMPT_EN = `Format the text below following EXACTLY these rules:
+
+KEEP ONLY: scene headings (INT./EXT. + LOCATION + TIME), simple action, character names and dialogue.
+REMOVE: title, author, character list, numbering, acts/scenes, CONT'D, MORE, editorial comments.
+ACTION: convert stage directions and parentheticals into simple action. Do not interpret or expand.
+DIALOGUE: character name in UPPERCASE, line below with dialogue, no parenthetical directions.
+Return only the formatted script, no explanations.
+
+TEXT: [paste here]`;
+
 export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
   const t = lang === 'pt' ? pt : en;
@@ -83,6 +103,10 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const [elKey, setElKey] = useState('');
   const [elVoices, setElVoices] = useState<any[]>([]);
   const [elStatus, setElStatus] = useState<'off' | 'checking' | 'ok' | 'err'>('off');
+  const [cartKey, setCartKey] = useState('');
+  const [cartVoices, setCartVoices] = useState<any[]>([]);
+  const [cartStatus, setCartStatus] = useState<'off' | 'checking' | 'ok' | 'err'>('off');
+  const [voiceProvider, setVoiceProvider] = useState<'elevenlabs' | 'cartesia'>('elevenlabs');
   
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
@@ -112,6 +136,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   
   const synth = useRef<SpeechSynthesis | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -225,12 +250,46 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     synth.current.speak(utt);
   };
 
+  const speakWithCartesia = (texto: string, voiceId: string, onEnd: () => void) => {
+    fetch('https://api.cartesia.ai/tts/bytes', {
+      method: 'POST',
+      headers: { 'X-API-Key': cartKey, 'Cartesia-Version': '2024-06-10', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: texto,
+        model_id: 'sonic-multilingual',
+        voice: { mode: 'id', id: voiceId },
+        output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 44100 }
+      })
+    })
+    .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
+    .then(blob => {
+      if (!isPlayingRef.current) return;
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { URL.revokeObjectURL(url); onEnd(); };
+      audio.onerror = () => { URL.revokeObjectURL(url); speakWithBrowser(texto, null, onEnd); };
+      audio.play();
+    })
+    .catch(() => speakWithBrowser(texto, null, onEnd));
+  };
+
   const speakText = useCallback((texto: string, narrador: string | null, onEnd: () => void) => {
     if (!isPlayingRef.current) return;
     stopAudio();
-    if (elKey && elVoices.length && narrador && characters[narrador]?.elVozId) {
-      const voiceId = characters[narrador].elVozId;
-      fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+
+    const charVoiceId = narrador ? characters[narrador]?.elVozId : narratorVoiceId;
+    const charCartId  = narrador ? characters[narrador]?.cartVozId : undefined;
+
+    // Cartesia
+    if (voiceProvider === 'cartesia' && cartKey && cartVoices.length) {
+      const vid = charCartId || (cartVoices[0]?.id);
+      if (vid) { speakWithCartesia(texto, vid, onEnd); return; }
+    }
+
+    // ElevenLabs — character voice
+    if (elKey && elVoices.length && narrador && charVoiceId) {
+      fetch(`https://api.elevenlabs.io/v1/text-to-speech/${charVoiceId}`, {
         method: 'POST',
         headers: { 'xi-api-key': elKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: texto, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.5, similarity_boost: 0.75 } })
@@ -246,7 +305,11 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
         audio.play();
       })
       .catch(() => speakWithBrowser(texto, narrador, onEnd));
-    } else if (elKey && elVoices.length && !narrador && narratorVoiceId) {
+      return;
+    }
+
+    // ElevenLabs — narrator voice
+    if (elKey && elVoices.length && !narrador && narratorVoiceId) {
       fetch(`https://api.elevenlabs.io/v1/text-to-speech/${narratorVoiceId}`, {
         method: 'POST',
         headers: { 'xi-api-key': elKey, 'Content-Type': 'application/json' },
@@ -262,10 +325,11 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
         audio.play();
       })
       .catch(() => speakWithBrowser(texto, narrador, onEnd));
-    } else {
-      speakWithBrowser(texto, narrador, onEnd);
+      return;
     }
-  }, [elKey, elVoices, characters, stopAudio, language, speed, getVoiceForCharacter, narratorVoiceId]);
+
+    speakWithBrowser(texto, narrador, onEnd);
+  }, [elKey, elVoices, cartKey, cartVoices, voiceProvider, characters, stopAudio, language, speed, getVoiceForCharacter, narratorVoiceId]);
 
   const playLine = useCallback((idx: number) => {
     lastStartedIdx.current = idx;
@@ -418,7 +482,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
           const palette = PALETTE[charIdx % PALETTE.length];
           chars[name] = {
             nome: name, voz: 'neutro', perfil: '', cor: palette.cor, bg: palette.bg,
-            iniciais: name.split(' ').slice(0, 2).map(w => w[0]).join(''), elVozId: ''
+            iniciais: name.split(' ').slice(0, 2).map(w => w[0]).join(''), elVozId: '', cartVozId: ''
           };
           charIdx++;
         }
@@ -461,6 +525,20 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       setElVoices(data.voices);
       setElStatus('ok');
     } catch { setElStatus('err'); }
+  };
+
+  const saveCartKey = async () => {
+    if (!cartKey) return;
+    setCartStatus('checking');
+    try {
+      const resp = await fetch('https://api.cartesia.ai/voices', {
+        headers: { 'X-API-Key': cartKey, 'Cartesia-Version': '2024-06-10' }
+      });
+      if (!resp.ok) throw new Error();
+      const data = await resp.json();
+      setCartVoices(data);
+      setCartStatus('ok');
+    } catch { setCartStatus('err'); }
   };
 
   return (
@@ -519,24 +597,33 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
             )}
           </section>
 
-          {/* Formatter link */}
+          {/* Copy prompt button */}
           <section className="px-4 py-3 border-b border-[#2a2a2a]">
-            <a
-              href="/formatar.html"
-              target="_blank"
-              rel="noopener noreferrer"
+            <div className="text-[0.6rem] tracking-widest uppercase text-[#777] mb-2">
+              {lang === 'pt' ? 'PDF com problemas?' : 'PDF issues?'}
+            </div>
+            <button
+              onClick={() => {
+                const prompt = lang === 'pt' ? PROMPT_PT : PROMPT_EN;
+                navigator.clipboard.writeText(prompt).then(() => {
+                  setCopiedPrompt(true);
+                  setTimeout(() => setCopiedPrompt(false), 2500);
+                });
+              }}
               className="flex items-center gap-2 w-full py-2 px-3 rounded-lg border border-dashed border-[#2a2a2a] hover:border-[#e8d5a3]/50 text-[#555] hover:text-[#e8d5a3] transition-all group"
             >
-              <span className="text-[0.9rem]">✦</span>
-              <div className="flex-1 min-w-0">
+              <span className="text-[0.9rem]">{copiedPrompt ? '✓' : '⎘'}</span>
+              <div className="flex-1 min-w-0 text-left">
                 <div className="text-[0.72rem] font-medium">
-                  {lang === 'pt' ? 'PDF com problemas de formatação?' : 'PDF formatting issues?'}
+                  {copiedPrompt
+                    ? (lang === 'pt' ? 'Prompt copiado!' : 'Prompt copied!')
+                    : (lang === 'pt' ? 'Copiar prompt de formatação' : 'Copy formatting prompt')}
                 </div>
                 <div className="text-[0.62rem] text-[#444] group-hover:text-[#777] mt-0.5">
-                  {lang === 'pt' ? 'Reformatar com IA antes de carregar →' : 'Reformat with AI before loading →'}
+                  {lang === 'pt' ? 'Cole em qualquer IA para reformatar →' : 'Paste into any AI to reformat →'}
                 </div>
               </div>
-            </a>
+            </button>
           </section>
 
           <section className="p-4 border-b border-[#2a2a2a]">
@@ -562,14 +649,37 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
           </section>
 
           <section className="p-4 border-b border-[#2a2a2a]">
-            <div className="text-[0.6rem] tracking-widest uppercase text-[#777] mb-3 flex items-center gap-1"><Mic className="w-3 h-3" /> {t['sidebar.elevenlabs']}</div>
-            <div className="flex gap-2 mb-2">
-              <input type="password" className="flex-1 bg-[#1e1e1e] border border-[#2a2a2a] rounded-md px-3 py-1.5 text-xs focus:outline-none focus:border-[#e8d5a3]" placeholder={t['sidebar.apiKeyPlaceholder']} value={elKey} onChange={(e) => setElKey(e.target.value)} />
-              <button onClick={saveELKey} className="bg-[#e8d5a3] text-[#0a0a0a] px-3 py-1.5 rounded-md text-xs font-medium">{t['sidebar.ok']}</button>
+            <div className="text-[0.6rem] tracking-widest uppercase text-[#777] mb-3 flex items-center gap-1"><Mic className="w-3 h-3" /> {lang === 'pt' ? 'Vozes com IA' : 'AI Voices'}</div>
+            {/* Provider tabs */}
+            <div className="flex gap-1 mb-3">
+              {(['elevenlabs', 'cartesia'] as const).map(p => (
+                <button key={p} onClick={() => setVoiceProvider(p)} className={cn("flex-1 py-1.5 rounded text-[0.68rem] border transition-all", voiceProvider === p ? "bg-[#e8d5a3] text-[#0a0a0a] border-[#e8d5a3]" : "text-[#777] border-[#2a2a2a] hover:border-[#e8d5a3]")}>
+                  {p === 'elevenlabs' ? 'ElevenLabs' : 'Cartesia'}
+                </button>
+              ))}
             </div>
-            <div className={cn("text-[0.65rem] px-2 py-1 rounded border", elStatus === 'ok' ? "bg-[#5cb87a]/10 text-[#5cb87a] border-[#5cb87a]/20" : elStatus === 'err' ? "bg-[#e05252]/10 text-[#e05252] border-[#e05252]/20" : "bg-[#1e1e1e] text-[#777] border-[#2a2a2a]")}>
-              {elStatus === 'ok' ? `✓ Conectado — ${elVoices.length} vozes` : elStatus === 'err' ? 'API Key inválida' : elStatus === 'checking' ? 'Verificando...' : t['sidebar.noKey']}
-            </div>
+            {voiceProvider === 'elevenlabs' ? (
+              <>
+                <div className="flex gap-2 mb-2">
+                  <input type="password" className="flex-1 bg-[#1e1e1e] border border-[#2a2a2a] rounded-md px-3 py-1.5 text-xs focus:outline-none focus:border-[#e8d5a3]" placeholder={t['sidebar.apiKeyPlaceholder']} value={elKey} onChange={(e) => setElKey(e.target.value)} />
+                  <button onClick={saveELKey} className="bg-[#e8d5a3] text-[#0a0a0a] px-3 py-1.5 rounded-md text-xs font-medium">{t['sidebar.ok']}</button>
+                </div>
+                <div className={cn("text-[0.65rem] px-2 py-1 rounded border", elStatus === 'ok' ? "bg-[#5cb87a]/10 text-[#5cb87a] border-[#5cb87a]/20" : elStatus === 'err' ? "bg-[#e05252]/10 text-[#e05252] border-[#e05252]/20" : "bg-[#1e1e1e] text-[#777] border-[#2a2a2a]")}>
+                  {elStatus === 'ok' ? `✓ ${elVoices.length} ${lang === 'pt' ? 'vozes' : 'voices'}` : elStatus === 'err' ? (lang === 'pt' ? 'API Key inválida' : 'Invalid API Key') : elStatus === 'checking' ? (lang === 'pt' ? 'Verificando...' : 'Checking...') : t['sidebar.noKey']}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex gap-2 mb-2">
+                  <input type="password" className="flex-1 bg-[#1e1e1e] border border-[#2a2a2a] rounded-md px-3 py-1.5 text-xs focus:outline-none focus:border-[#e8d5a3]" placeholder="Cartesia API Key..." value={cartKey} onChange={(e) => setCartKey(e.target.value)} />
+                  <button onClick={saveCartKey} className="bg-[#e8d5a3] text-[#0a0a0a] px-3 py-1.5 rounded-md text-xs font-medium">{t['sidebar.ok']}</button>
+                </div>
+                <div className={cn("text-[0.65rem] px-2 py-1 rounded border", cartStatus === 'ok' ? "bg-[#5cb87a]/10 text-[#5cb87a] border-[#5cb87a]/20" : cartStatus === 'err' ? "bg-[#e05252]/10 text-[#e05252] border-[#e05252]/20" : "bg-[#1e1e1e] text-[#777] border-[#2a2a2a]")}>
+                  {cartStatus === 'ok' ? `✓ ${cartVoices.length} ${lang === 'pt' ? 'vozes' : 'voices'}` : cartStatus === 'err' ? (lang === 'pt' ? 'API Key inválida' : 'Invalid API Key') : cartStatus === 'checking' ? (lang === 'pt' ? 'Verificando...' : 'Checking...') : (lang === 'pt' ? 'Sem Key — usando voz do navegador' : 'No Key — using browser voice')}
+                </div>
+                <a href="https://cartesia.ai" target="_blank" rel="noopener noreferrer" className="text-[0.6rem] text-[#555] hover:text-[#e8d5a3] mt-1 block">cartesia.ai →</a>
+              </>
+            )}
           </section>
 
           <section className="p-4 border-b border-[#2a2a2a]">
@@ -856,6 +966,43 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                               <div className="flex-1 min-w-0">
                                 <div className="text-[0.82rem]">{v.name}</div>
                                 {v.labels?.accent && <div className="text-[0.65rem] text-[#555]">{v.labels.accent}</div>}
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-[#e8d5a3]" />}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cartesia voices */}
+                {cartVoices.length > 0 && (
+                  <div>
+                    <div className="text-[0.6rem] uppercase tracking-widest text-[#777] mb-2">Cartesia</div>
+                    <div className="space-y-1">
+                      {cartVoices
+                        .filter((v: any) => !searchTerm || v.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map((v: any) => {
+                          const currentId = characters[showVoiceModal!]?.cartVozId;
+                          const isSelected = currentId === v.id;
+                          return (
+                            <button
+                              key={v.id}
+                              onClick={() => {
+                                if (showVoiceModal !== '__narrator__') {
+                                  setCharacters(prev => ({ ...prev, [showVoiceModal!]: { ...prev[showVoiceModal!], cartVozId: v.id } }));
+                                }
+                                setVoiceProvider('cartesia');
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all",
+                                isSelected ? "bg-[#e8d5a3]/10 border border-[#e8d5a3]/40" : "hover:bg-[#1e1e1e] border border-transparent"
+                              )}
+                            >
+                              <span className="text-xl">🔊</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[0.82rem]">{v.name}</div>
+                                {v.language && <div className="text-[0.65rem] text-[#555]">{v.language}</div>}
                               </div>
                               {isSelected && <Check className="w-4 h-4 text-[#e8d5a3]" />}
                             </button>
