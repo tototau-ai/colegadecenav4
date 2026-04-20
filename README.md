@@ -141,8 +141,8 @@ colegadecenav4/
 
 ## Créditos
 
-Criado por **Luciano Mello** — roteirista e fotógrafo, com 30 anos de experiência na indústria da moda e publicidade.
+Criado por **Luciano Mello** — cineasta e roteirista.
 
-Membro do [Stage32](https://stage32.com).
+[site]([https://stage32.com](https://lucianomello.46graus.com/)).
 
 © 2026 Luciano Mello · Colega de Cena / Scene Partner
