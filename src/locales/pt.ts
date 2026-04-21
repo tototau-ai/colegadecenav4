@@ -3,9 +3,9 @@ export default {
   'landing.tagline': 'Para Roteiristas e Atores',
   'landing.title': 'Ouça seu roteiro <em>ganhar vida</em>',
   'landing.subtitle': 'Carregue seu roteiro, atribua uma voz única a cada personagem e ouça. Identifique diálogos travados e problemas de ritmo antes de qualquer outra pessoa.',
-  'landing.cta': 'Começar Agora — 5 páginas grátis',
+  'landing.cta': 'Começar Agora',
   'landing.how': 'Ver como funciona',
-  'landing.free': 'Sem assinatura. Pague uma vez por roteiro. <strong>Grátis para começar.</strong>',
+  'landing.free': 'Gratuito e ilimitado. Sem cadastro. Sem cartão.',
   // Steps
   'step1.title': 'Carregue seu roteiro',
   'step1.desc': 'Importe um arquivo <strong>Final Draft FDX</strong> para resultados perfeitos, ou cole o texto diretamente.',
@@ -31,7 +31,7 @@ export default {
   'feature6.desc': 'Tudo roda no seu navegador. Seu roteiro nunca é enviado para um servidor — ele fica no seu dispositivo.',
   // Final CTA
   'final.title': 'Pronto para <em>ouvir</em> sua história?',
-  'final.sub': 'Comece com 5 páginas grátis. Sem cadastro. Sem cartão.',
+  'final.sub': 'Gratuito e ilimitado. Sem cadastro. Sem cartão.',
   'final.button': 'Abrir Colega de Cena →',
   // Footer
   'footer.created': 'Criado para roteiristas, por um roteirista.',
