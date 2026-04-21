@@ -342,6 +342,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     }
     if (idx > 0 && idx % 275 === 0) {
       setIsPlaying(false);
+      lastStartedIdx.current = -1;
       setShowPaywall(true);
       return;
     }
@@ -899,16 +900,36 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                 <button onClick={() => setShowVoiceModal(null)} className="text-[#777] hover:text-[#f0ece4]"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" />
-                  <input
-                    type="text"
-                    placeholder={t['voice.search']}
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg pl-9 pr-4 py-2 text-[0.78rem] focus:outline-none focus:border-[#e8d5a3]"
-                  />
+                {/* Search + language filter */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" />
+                    <input
+                      type="text"
+                      placeholder={t['voice.search']}
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="w-full bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg pl-9 pr-4 py-2 text-[0.78rem] focus:outline-none focus:border-[#e8d5a3]"
+                    />
+                  </div>
+                  {cartVoices.length > 0 && (
+                    <div className="flex gap-1 flex-wrap">
+                      {['', 'pt', 'en', 'es', 'fr', 'de', 'it'].map(code => (
+                        <button
+                          key={code || 'all'}
+                          onClick={() => setSearchTerm(code ? code : '')}
+                          className={cn(
+                            "text-[0.62rem] px-2 py-0.5 rounded border transition-all",
+                            searchTerm === code
+                              ? "bg-[#e8d5a3] text-[#0a0a0a] border-[#e8d5a3]"
+                              : "border-[#2a2a2a] text-[#555] hover:border-[#e8d5a3] hover:text-[#e8d5a3]"
+                          )}
+                        >
+                          {code === '' ? (lang === 'pt' ? 'todas' : 'all') : code.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {/* System / Profile voices */}
                 <div>
@@ -988,7 +1009,12 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
                     <div className="text-[0.6rem] uppercase tracking-widest text-[#777] mb-2">Cartesia</div>
                     <div className="space-y-1">
                       {cartVoices
-                        .filter((v: any) => !searchTerm || v.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .filter((v: any) => {
+                          if (!searchTerm) return true;
+                          const s = searchTerm.toLowerCase();
+                          // match by name OR language code (pt, en, es, fr...)
+                          return v.name.toLowerCase().includes(s) || (v.language || '').toLowerCase().startsWith(s);
+                        })
                         .map((v: any) => {
                           const currentId = showVoiceModal === '__narrator__'
                             ? narratorCartVoiceId
@@ -1113,7 +1139,13 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
 
               <div className="border-t border-[#2a2a2a] px-8 py-4">
                 <button
-                  onClick={() => { setShowPaywall(false); setIsPlaying(true); }}
+                  onClick={() => {
+                    setShowPaywall(false);
+                    // retoma a partir da linha atual sem resetar o índice
+                    isPlayingRef.current = true;
+                    setIsPlaying(true);
+                    playLine(currentLineIdx);
+                  }}
                   className="w-full py-2.5 text-[0.75rem] text-[#555] hover:text-[#f0ece4] transition-colors"
                 >
                   {lang === 'pt' ? 'Continuar lendo sem apoiar →' : 'Continue reading without supporting →'}

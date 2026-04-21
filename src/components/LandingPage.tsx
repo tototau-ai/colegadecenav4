@@ -165,7 +165,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
               ▶ {lang === 'pt' ? 'Tutoriais' : 'Tutorials'}
             </a>
             <button onClick={onStart} className="bg-[#e8c97a] text-[#080808] px-5 py-2 rounded-md font-medium hover:bg-[#c4a052] transition-all transform hover:-translate-y-0.5">
-              {lang === 'pt' ? 'Experimentar Grátis →' : 'Try for Free →'}
+              {lang === 'pt' ? 'Ir para o app →' : 'Open app →'}
             </button>
           </div>
         </div>
