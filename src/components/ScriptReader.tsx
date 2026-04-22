@@ -135,6 +135,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
   
   // Modals
   const [showPaywall, setShowPaywall] = useState(false);
+  const nextDonationAt = useRef(275); // próxima linha que dispara o modal
   const [showVoiceModal, setShowVoiceModal] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedPrompt, setCopiedPrompt] = useState(false);
@@ -340,9 +341,10 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       setIsWaitingForActor(false);
       return;
     }
-    if (idx > 0 && idx % 275 === 0) {
+    if (idx >= nextDonationAt.current) {
       setIsPlaying(false);
       lastStartedIdx.current = -1;
+      nextDonationAt.current = idx + 275; // próximo disparo 275 linhas à frente
       setShowPaywall(true);
       return;
     }
