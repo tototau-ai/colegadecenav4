@@ -18,9 +18,22 @@ export function parseFDX(xml: string): ScriptLine[] {
       'General': 'action',
       'Centered': 'action'
     };
+
+    // Tags que contêm metadados do Final Draft (cards, sinopses, notas)
+    // e nunca fazem parte do roteiro em si
+    const SKIP_PARENTS = ['SceneProperties', 'Synopsis', 'SceneSynopsis', 'Note', 'Header', 'Footer', 'TitlePage'];
+
     paragraphs.forEach((p) => {
+      // Ignorar parágrafos dentro de elementos de metadados
+      let ancestor = p.parentElement;
+      while (ancestor) {
+        if (SKIP_PARENTS.includes(ancestor.tagName)) return;
+        ancestor = ancestor.parentElement;
+      }
+
       const type = p.getAttribute('Type') || 'Action';
       if (type === 'More' || type === 'Cont') return;
+
       let txt = '';
       const textNodes = p.querySelectorAll('Text');
       if (textNodes.length) {
