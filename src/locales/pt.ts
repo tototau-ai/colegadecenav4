@@ -37,7 +37,7 @@ export default {
   'footer.created': 'Criado para roteiristas, por um roteirista.',
   // App header
   'app.freePages': 'páginas grátis restantes',
-  'app.unlock': 'Desbloquear completo',
+  'app.unlock': 'Apoiar',
   // Sidebar
   'sidebar.upload': 'Carregar Roteiro',
   'sidebar.recommended': 'Recom.',

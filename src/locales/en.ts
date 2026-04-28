@@ -31,7 +31,7 @@ export default {
   'final.button': 'Open Colega de Cena →',
   'footer.created': 'Made for screenwriters, by a screenwriter.',
   'app.freePages': 'free pages left',
-  'app.unlock': 'Unlock full',
+  'app.unlock': 'Support',
   'sidebar.upload': 'Upload Script',
   'sidebar.recommended': 'Rec.',
   'sidebar.review': 'Review',
