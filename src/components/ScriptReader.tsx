@@ -49,23 +49,27 @@ function deveExibir(l: ScriptLine, readMode: 'tudo' | 'dialogos' | 'acao'): bool
 
 const PROMPT_PT = `Formate o texto abaixo seguindo EXATAMENTE estas regras:
 
-MANTER APENAS: cabeçalhos de cena (INT./EXT. + LOCAL + PERÍODO), ações simples, nomes de personagem e diálogos.
-REMOVER: títulos, autor, lista de personagens, numerações, atos/cenas, CONT'D, MORE, comentários editoriais.
-AÇÃO: converter rubricas e parênteses em ação simples. Não interpretar nem expandir.
-DIÁLOGO: nome em MAIÚSCULO, fala na linha abaixo, sem direções entre parênteses.
-Retorne apenas o roteiro formatado, sem explicações.
+1. FIDELIDADE TOTAL: Proibido alterar, resumir, omitir ou reescrever qualquer palavra das descrições de ação e diálogos. O texto deve ser transposto de forma IDÊNTICA ao original. Você é um compilador técnico, não um editor criativo.
+2. MANTER APENAS: cabeçalhos de cena (INT./EXT. + LOCAL + PERÍODO), ações, nomes de personagem e diálogos.
+3. REMOVER: títulos, autor, lista de personagens, numerações, atos/cenas, CONT'D, MORE e comentários editoriais.
+4. AÇÃO: Converta rubricas e parênteses em texto de ação simples. Mantenha o texto original ipsis litteris, sem interpretar ou expandir.
+5. DIÁLOGO: Nome em MAIÚSCULO, fala na linha abaixo, sem direções entre parênteses.
+6. OVERLAP: Caso existam diálogos simultâneos (lado a lado), separe-os e coloque um após o outro em sequência normal.
+7. SAÍDA: Retorne apenas o roteiro formatado. Sem explicações, sem introduções e sem notas de rodapé.
 
-TEXTO: [cole aqui]`;
+TEXTO: [Cole seu roteiro aqui]`;
 
 const PROMPT_EN = `Format the text below following EXACTLY these rules:
 
-KEEP ONLY: scene headings (INT./EXT. + LOCATION + TIME), simple action, character names and dialogue.
-REMOVE: title, author, character list, numbering, acts/scenes, CONT'D, MORE, editorial comments.
-ACTION: convert stage directions and parentheticals into simple action. Do not interpret or expand.
-DIALOGUE: character name in UPPERCASE, line below with dialogue, no parenthetical directions.
-Return only the formatted script, no explanations.
+1. TOTAL FIDELITY: It is forbidden to alter, summarize, omit or rewrite any word from action descriptions or dialogue. The text must be transposed IDENTICALLY to the original. You are a technical compiler, not a creative editor.
+2. KEEP ONLY: scene headings (INT./EXT. + LOCATION + TIME OF DAY), action, character names and dialogue.
+3. REMOVE: title, author, character list, numbering, acts/scenes, CONT'D, MORE and editorial comments.
+4. ACTION: Convert stage directions and parentheticals into simple action text. Keep the original text verbatim, without interpreting or expanding.
+5. DIALOGUE: Character name in UPPERCASE, line below with dialogue, no parenthetical directions.
+6. OVERLAP: If simultaneous dialogue exists (side by side), separate them and place one after the other in normal sequence.
+7. OUTPUT: Return only the formatted script. No explanations, no introductions and no footnotes.
 
-TEXT: [paste here]`;
+TEXT: [Paste your script here]`;
 
 export default function ScriptReader({ onBack }: ScriptReaderProps) {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
@@ -258,7 +262,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       headers: { 'X-API-Key': cartKey, 'Cartesia-Version': '2024-06-10', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         transcript: texto,
-        model_id: 'sonic-multilingual',
+        model_id: 'sonic-3',
         voice: { mode: 'id', id: voiceId },
         output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 44100 }
       })
