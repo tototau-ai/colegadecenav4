@@ -6,83 +6,27 @@ import en from '../locales/en';
 
 const PROMPT_PT = `Formate o texto abaixo seguindo EXATAMENTE estas regras:
 
-MANTER APENAS:
-- Cabeçalhos de cena no formato: INT. ou EXT. + LOCAL + PERÍODO DO DIA
-- Ações em texto simples e direto
-- Nome de personagem
-- Diálogo
+1. FIDELIDADE TOTAL: Proibido alterar, resumir, omitir ou reescrever qualquer palavra das descrições de ação e diálogos. O texto deve ser transposto de forma IDÊNTICA ao original. Você é um compilador técnico, não um editor criativo.
+2. MANTER APENAS: cabeçalhos de cena (INT./EXT. + LOCAL + PERÍODO), ações, nomes de personagem e diálogos.
+3. REMOVER: títulos, autor, lista de personagens, numerações, atos/cenas, CONT'D, MORE e comentários editoriais.
+4. AÇÃO: Converta rubricas e parênteses em texto de ação simples. Mantenha o texto original ipsis litteris, sem interpretar ou expandir.
+5. DIÁLOGO: Nome em MAIÚSCULO, fala na linha abaixo, sem direções entre parênteses.
+6. OVERLAP: Caso existam diálogos simultâneos (lado a lado), separe-os e coloque um após o outro em sequência normal.
+7. SAÍDA: Retorne apenas o roteiro formatado. Sem explicações, sem introduções e sem notas de rodapé.
 
-REMOVER COMPLETAMENTE:
-- Títulos da obra, nome de autor, lista de personagens
-- Indicação de ato, cena, numeração ou estrutura teatral
-- Códigos, siglas ou marcações técnicas
-- Indicações como CONT'D, MORE, etc.
-- Comentários editoriais ou literários
-
-AÇÃO:
-- Converter qualquer rubrica, parênteses ou descrição em ação simples
-- Não interpretar, não expandir e não resumir
-- Manter apenas o que for visível ou executável em cena
-
-DIÁLOGO:
-- Nome do personagem em MAIÚSCULO
-- Linha abaixo com o diálogo
-- Remover indicações como "(emocionado)", "(à parte)" etc.
-- Não reescrever falas, apenas corrigir gramática
-
-FORMATAÇÃO:
-- Texto limpo, sem explicações
-- Sem comentários fora do roteiro
-- Sem adicionar conteúdo novo
-- Manter ordem original do texto
-
-LINGUAGEM:
-- Corrigir ortografia e pontuação
-- Não alterar estilo ou intenção
-
-Retorne apenas o roteiro formatado.
-
-TEXTO: [cole aqui]`;
+TEXTO: [Cole seu roteiro aqui]`;
 
 const PROMPT_EN = `Format the text below following EXACTLY these rules:
 
-KEEP ONLY:
-- Scene headings in format: INT. or EXT. + LOCATION + TIME OF DAY
-- Action in plain, direct text
-- Character names
-- Dialogue
+1. TOTAL FIDELITY: It is forbidden to alter, summarize, omit or rewrite any word from action descriptions or dialogue. The text must be transposed IDENTICALLY to the original. You are a technical compiler, not a creative editor.
+2. KEEP ONLY: scene headings (INT./EXT. + LOCATION + TIME OF DAY), action, character names and dialogue.
+3. REMOVE: title, author, character list, numbering, acts/scenes, CONT'D, MORE and editorial comments.
+4. ACTION: Convert stage directions and parentheticals into simple action text. Keep the original text verbatim, without interpreting or expanding.
+5. DIALOGUE: Character name in UPPERCASE, line below with dialogue, no parenthetical directions.
+6. OVERLAP: If simultaneous dialogue exists (side by side), separate them and place one after the other in normal sequence.
+7. OUTPUT: Return only the formatted script. No explanations, no introductions and no footnotes.
 
-REMOVE COMPLETELY:
-- Title, author name, character list
-- Act/scene numbers or theatrical structure
-- Technical codes or markings
-- CONT'D, MORE, etc.
-- Editorial or literary comments
-
-ACTION:
-- Convert any stage directions, parentheses or descriptions into simple action
-- Do not interpret, expand or summarize
-- Keep only what is visible or executable on screen
-
-DIALOGUE:
-- Character name in UPPERCASE
-- Dialogue on the line below
-- Remove directions like "(emotional)", "(aside)" etc.
-- Do not rewrite lines, only correct grammar
-
-FORMATTING:
-- Clean text, no explanations
-- No comments outside the script
-- No added content
-- Keep original order
-
-LANGUAGE:
-- Fix spelling and punctuation
-- Do not alter style or intent
-
-Return only the formatted script.
-
-TEXT: [paste here]`;
+TEXT: [Paste your script here]`;
 
 function CopyPromptButton({ lang }: { lang: 'pt' | 'en' }) {
   const [copied, setCopied] = useState(false);
@@ -291,9 +235,13 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             </div>
             <div className="px-5 py-4 font-mono text-[0.7rem] text-[#666] leading-relaxed max-h-48 overflow-y-auto">
               <span className="text-[#444]">{lang === 'pt' ? '// Cole em qualquer IA, depois adicione seu texto no final' : '// Paste into any AI, then add your text at the end'}</span>{'\n\n'}
-              <span className="text-[#c4a052]">Formate o texto abaixo seguindo EXATAMENTE estas regras:</span>{'\n\n'}
-              <span className="text-[#888]">Manter: cabeçalhos de cena (INT./EXT.), ações, nomes e diálogos.{'\n'}Remover: títulos, autores, numerações, CONT'D, MORE, comentários.{'\n'}Ações: converter rubricas em ação simples, sem interpretar.{'\n'}Diálogo: nome em MAIÚSCULO, fala na linha abaixo, sem direções.{'\n'}Retorne apenas o roteiro formatado, sem explicações.</span>{'\n\n'}
-              <span className="text-[#555]">TEXTO: [cole aqui]</span>
+              <span className="text-[#c4a052]">{lang === 'pt' ? 'Formate o texto abaixo seguindo EXATAMENTE estas regras:' : 'Format the text below following EXACTLY these rules:'}</span>{'\n\n'}
+              <span className="text-[#888]">
+                {lang === 'pt'
+                  ? `1. FIDELIDADE TOTAL: Proibido alterar, resumir ou reescrever qualquer palavra.\n2. MANTER: cenas, ações, nomes e diálogos.\n3. REMOVER: títulos, numerações, CONT'D, MORE, comentários.\n4. AÇÃO: ipsis litteris, sem interpretar.\n5. DIÁLOGO: nome em MAIÚSCULO, fala na linha abaixo.\n6. OVERLAP: diálogos simultâneos em sequência.\n7. SAÍDA: apenas o roteiro, sem explicações.`
+                  : `1. TOTAL FIDELITY: Forbidden to alter, summarize or rewrite any word.\n2. KEEP: scenes, action, names and dialogue.\n3. REMOVE: titles, numbering, CONT'D, MORE, comments.\n4. ACTION: verbatim, no interpretation.\n5. DIALOGUE: name in UPPERCASE, line below.\n6. OVERLAP: simultaneous dialogue in sequence.\n7. OUTPUT: only the script, no explanations.`}
+              </span>{'\n\n'}
+              <span className="text-[#555]">{lang === 'pt' ? 'TEXTO: [Cole seu roteiro aqui]' : 'TEXT: [Paste your script here]'}</span>
             </div>
           </div>
         </div>
