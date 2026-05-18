@@ -262,7 +262,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
       headers: { 'X-API-Key': cartKey, 'Cartesia-Version': '2024-06-10', 'Content-Type': 'application/json' },
       body: JSON.stringify({
         transcript: texto,
-        model_id: 'sonic-3',
+        model_id: 'sonic-multilingual',
         voice: { mode: 'id', id: voiceId },
         output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 44100 }
       })
@@ -387,12 +387,30 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     });
   }, [lines, readMode, isActorMode, actorCharacter, speakText]);
 
+  // Detect Android for actor mode fix
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  const handleActorContinue = useCallback(() => {
+    setIsWaitingForActor(false);
+    if (isAndroid && synth.current) {
+      // Android requires speech to be initiated within a user gesture.
+      // Cancel any pending synthesis, wait a tick, then resume.
+      synth.current.cancel();
+      setTimeout(() => {
+        isPlayingRef.current = true;
+        setIsPlaying(true);
+        playLine(currentLineIdx + 1);
+      }, 80);
+    } else {
+      playLine(currentLineIdx + 1);
+    }
+  }, [isAndroid, currentLineIdx, playLine]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && isWaitingForActor) {
         e.preventDefault();
-        setIsWaitingForActor(false);
-        playLine(currentLineIdx + 1);
+        handleActorContinue();
       } else if (e.code === 'Space' && !showPreview && !showVoiceModal && !showPaste) {
         e.preventDefault();
         setIsPlaying(prev => !prev);
@@ -400,7 +418,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isWaitingForActor, currentLineIdx, playLine, showPreview, showVoiceModal, showPaste]);
+  }, [isWaitingForActor, handleActorContinue, showPreview, showVoiceModal, showPaste]);
 
   const previewVoice = (voiceId: string | null, profileId: string | null) => {
     if (!synth.current) return;
@@ -517,7 +535,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
 
   const confirmPreview = () => { applyLines(previewLines, scriptName, true); setShowPreview(false); };
   const togglePlayState = () => {
-    if (isWaitingForActor) { setIsWaitingForActor(false); setIsPlaying(true); playLine(currentLineIdx + 1); }
+    if (isWaitingForActor) { handleActorContinue(); }
     else { setIsPlaying(!isPlaying); }
   };
   const nextLine = () => { setIsPlaying(false); setCurrentLineIdx(prev => Math.min(prev + 1, lines.length - 1)); };
@@ -762,7 +780,7 @@ export default function ScriptReader({ onBack }: ScriptReaderProps) {
             )}
           </div>
 
-          <AnimatePresence>{isWaitingForActor && (<motion.div initial={{ opacity: 0, y: 20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }} className="fixed bottom-32 left-1/2 z-50"><button onClick={() => setIsWaitingForActor(false)} className="bg-[#e05252] text-white px-8 py-4 rounded-full font-serif text-lg shadow-2xl shadow-[#e05252]/40 flex items-center gap-3 hover:scale-105 transition-transform">{t['actor.continue']} <kbd className="bg-white/20 px-2 py-0.5 rounded text-xs font-sans">espaço</kbd></button></motion.div>)}</AnimatePresence>
+          <AnimatePresence>{isWaitingForActor && (<motion.div initial={{ opacity: 0, y: 20, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }} className="fixed bottom-32 left-1/2 z-50"><button onClick={handleActorContinue} className="bg-[#e05252] text-white px-8 py-4 rounded-full font-serif text-lg shadow-2xl shadow-[#e05252]/40 flex items-center gap-3 hover:scale-105 transition-transform">{t['actor.continue']} {!isAndroid && <kbd className="bg-white/20 px-2 py-0.5 rounded text-xs font-sans">espaço</kbd>}</button></motion.div>)}</AnimatePresence>
 
           <footer className="border-t border-[#2a2a2a] bg-[#141414] p-4 md:px-8">
             <div className="max-w-3xl mx-auto">
